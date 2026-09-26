@@ -18,6 +18,19 @@ DEFAULT_MODELS = (
     "chronos-bolt-zero-shot",
 )
 
+
+def common_anchor_frames(frame_by_model: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
+    """Restrict every model's backtest frame to the anchors ALL models of the
+    unit evaluated. Every cross-model table (overall, by-month, by-horizon,
+    day-type slices) must be computed from these frames: a stride-N model
+    otherwise gets judged on a different (and smaller) day sample, which made
+    the E4 slice table read 'chronos best on cold days' off ~3 days vs 23."""
+    common = None
+    for frame in frame_by_model.values():
+        anchors = set(frame["anchor"].unique())
+        common = anchors if common is None else common & anchors
+    return {m: f[f["anchor"].isin(common)] for m, f in frame_by_model.items()}
+
 # Heavyweight models get anchor subsampling; everything else runs full daily.
 # stride 6 (not 7): with a 7-day stride every Chronos anchor lands on the SAME
 # weekday, which blinds weekday/weekend slices; 6 rotates through the week.
@@ -70,11 +83,7 @@ def run_comparison(
     out: dict = {}
     for key, frame_by_model in unit_models.items():
         market, unit = key.split("/", 1)
-        # common evaluation set across models of this unit
-        common_anchors = None
-        for frame in frame_by_model.values():
-            anchors = set(frame["anchor"].unique())
-            common_anchors = anchors if common_anchors is None else common_anchors & anchors
+        common_frames = common_anchor_frames(frame_by_model)
 
         aggregates = {}
         for model, frame in frame_by_model.items():
@@ -85,14 +94,17 @@ def run_comparison(
             agg["pub_lag_days"] = res["pub_lag_days"]
             agg["n_anchors"] = res["n_anchors"]
             agg["anchors_stride"] = strides[model]
-            common = frame[frame["anchor"].isin(common_anchors)]
-            common_agg = aggregate(common, BacktestConfig())
+            common_agg = aggregate(common_frames[model], BacktestConfig())
             agg["on_common_anchors"] = {
                 **common_agg["overall"],
-                "n_anchors": int(common["anchor"].nunique()),
+                "n_anchors": int(common_frames[model]["anchor"].nunique()),
             }
+            # md by_month/by_horizon are cross-model comparison tables too —
+            # show them on the common anchors, not on each model's own sample
+            agg["by_month"] = common_agg["by_month"]
+            agg["by_horizon"] = common_agg["by_horizon"]
             aggregates[model] = agg
-        slices = slice_metrics(frame_by_model, unit)
+        slices = slice_metrics(common_frames, unit)
         out[key] = {"models": aggregates, "slices": slices}
     return out
 
