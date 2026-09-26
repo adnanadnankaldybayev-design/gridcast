@@ -168,8 +168,8 @@ def run_compare(argv: list[str]) -> int:
     parser.add_argument(
         "--chronos-stride",
         type=int,
-        default=7,
-        help="evaluate Chronos every Nth anchor (CPU budget guard)",
+        default=6,
+        help="evaluate Chronos every Nth anchor (6 rotates weekdays; CPU budget guard)",
     )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))

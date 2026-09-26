@@ -129,13 +129,13 @@ def test_cold_decile_threshold_from_reference_only():
 
     unit = "ALL"
     lat, lon, _ = POINTS[unit][0]
-    # seed MUST cover the whole 90d reference + eval window, otherwise
-    # point_data extends the memo from the network (by design). Seeding stores
-    # a copy, so we mutate and reseed explicitly.
-    idx = pd.date_range("2025-11-01", periods=200 * 24, freq="h", tz="UTC")
+    # seed MUST cover climatology (same months one year back) + eval window,
+    # otherwise point_data extends the memo from the network (by design).
+    # Seeding stores a copy, so we mutate and reseed explicitly.
+    idx = pd.date_range("2025-03-01", periods=580 * 24, freq="h", tz="UTC")
     temps = pd.DataFrame(
         {
-            "temperature_2m": [5.0] * (150 * 24) + [20.0] * (50 * 24),
+            "temperature_2m": [5.0] * (395 * 24) + [20.0] * (185 * 24),
             "relative_humidity_2m": 50.0,
             "wind_speed_10m": 5.0,
         },
@@ -150,7 +150,7 @@ def test_cold_decile_threshold_from_reference_only():
     # reference = prev 90 days at 5C -> threshold ~5C; eval days at 20C -> none cold
     assert dates == set()
     assert meta["threshold_c"] == pytest.approx(5.0)
-    assert meta["threshold_basis"].startswith("pre-evaluation")
+    assert meta["threshold_basis"].startswith("climatology")
     # now cool the eval days and reseed; the threshold itself must NOT move
     temps2 = temps.copy()
     temps2.loc[temps2.index >= pd.Timestamp("2026-03-31", tz="UTC"), "temperature_2m"] = 2.0

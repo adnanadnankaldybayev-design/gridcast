@@ -16,6 +16,7 @@ import pandas as pd
 from gridcast.eval.metrics import summarize
 from gridcast.features.calendar import UNIT_TZ, unit_holidays
 from gridcast.features.weather import unit_weather
+from gridcast.ingest.base import IngestError
 
 COLD_DECILE = 0.10
 
@@ -47,26 +48,31 @@ def _daily_temps(unit: str, start: date, end: date) -> pd.Series:
 def _cold_dates_with_provenance(
     frame: pd.DataFrame, unit: str
 ) -> tuple[set[date], dict]:
-    """Cold-decile days of the EVALUATION window, with the threshold learned
-    ONLY on the pre-evaluation reference period (train-only stance; avoids the
-    soft leakage of selecting slices from the window being measured).
-
-    Reference: the 90 days immediately before the first evaluated timestamp.
-    Fallback (reference < 20 days): whole-window decile, flagged honestly.
+    """Cold-decile days of the EVALUATION window against CLIMATOLOGY: the
+    threshold is the 10th percentile of last year's daily means over the same
+    calendar months (never the measured window itself). Reference year is
+    fetched from the same Open-Meteo archive; fallback to whole-window decile
+    is flagged honestly if history is unavailable.
     """
     eval_start = frame["timestamp"].min().date()
     eval_end = frame["timestamp"].max().date()
     tz = UNIT_TZ[unit]
-    ref_start = eval_start - pd.Timedelta(days=90)
-    ref_end = eval_start - pd.Timedelta(days=1)
     eval_daily = _daily_temps(unit, eval_start, eval_end)
-    ref_daily = _daily_temps(unit, ref_start, ref_end)
-    if len(ref_daily) >= 20:
-        threshold = float(ref_daily.quantile(COLD_DECILE))
-        basis = f"pre-evaluation reference ({len(ref_daily)} days)"
-    else:
+    # climatology: same months one year back
+    ref_start = date(eval_start.year - 1, eval_start.month, eval_start.day)
+    ref_end = date(eval_end.year - 1, eval_end.month, min(eval_end.day, 28))
+    basis = None
+    try:
+        ref_daily = _daily_temps(unit, ref_start, ref_end)
+        min_days = max(7, int(0.9 * (eval_end - eval_start).days))
+        if len(ref_daily) >= min_days:
+            threshold = float(ref_daily.quantile(COLD_DECILE))
+            basis = f"climatology {ref_start.year} same months ({len(ref_daily)} days)"
+    except IngestError:
+        basis = None
+    if basis is None:
         threshold = float(eval_daily.quantile(COLD_DECILE))
-        basis = f"whole-window (insufficient reference: {len(ref_daily)} days)"
+        basis = "whole-window (climatology unavailable)"
     return set(eval_daily[eval_daily <= threshold].index), {
         "threshold_c": round(threshold, 2),
         "threshold_basis": basis,

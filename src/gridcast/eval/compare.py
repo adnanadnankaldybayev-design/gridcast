@@ -19,7 +19,9 @@ DEFAULT_MODELS = (
 )
 
 # Heavyweight models get anchor subsampling; everything else runs full daily.
-MODEL_ANCHOR_STRIDE = {"chronos-bolt-zero-shot": 7}
+# stride 6 (not 7): with a 7-day stride every Chronos anchor lands on the SAME
+# weekday, which blinds weekday/weekend slices; 6 rotates through the week.
+MODEL_ANCHOR_STRIDE = {"chronos-bolt-zero-shot": 6}
 
 
 def run_comparison(
@@ -35,7 +37,7 @@ def run_comparison(
     """Returns {unit_key: {"models": {model: aggregate}, "slices": ...}}.
 
     Cross-model numbers are always computed on the COMMON anchor set (the
-    intersection of each model's evaluated anchors), so a stride-7 Chronos is
+    intersection of each model's evaluated anchors), so a stride-N Chronos is
     compared to naive/ridge/GBM on exactly the same evaluation points.
     """
     per_model: dict[str, tuple[dict, dict]] = {}
@@ -151,7 +153,7 @@ def render_markdown(comparison: dict, period: tuple[str, str], details: dict) ->
         "(production-style weekly retraining); "
         "anchors need >=30 days of published history (GB: starts ~Apr 21 due to 21d arrears)",
         "- cross-model numbers below are computed on the COMMON anchor set "
-        "(intersection of evaluated anchors), so the stride-7 Chronos is judged "
+        "(intersection of evaluated anchors), so the stride-N Chronos is judged "
         "on exactly the same points as full-daily models",
         "- Chronos-Bolt-mini runs ZERO-SHOT (no fitting, pretrained weights); "
         "CPU-bound, evaluated on every "
