@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Data: raw snapshots and processed parquet are artifacts, not source
+data/raw/**
+data/processed/**
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+*.parquet
+
+# Secrets / env
+.env
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/

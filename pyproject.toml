@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gridcast"
+version = "0.1.0"
+description = "Open multi-market electricity demand forecasting (GB / IE / AU) with a live, self-updating public dashboard."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "adnanadnankaldybayev-design" }]
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=14",
+    "requests>=2.31",
+    "holidays>=0.40",
+    "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+gridcast = "gridcast.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
