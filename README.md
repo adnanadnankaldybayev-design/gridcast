@@ -198,7 +198,7 @@ Chronos-Bolt-mini runs ZERO-SHOT on CPU (`models/chronos.py`; install via
 `.[chronos]`); fit() is a context cut by design; `torch` heavy deps are
 optional extras.
 
-### Measured on the full archive (common anchor set; 2026-09-26, SHA 61906c8+)
+### Measured on the full archive (common anchor set; 2026-09-26, SHA d7d698b+)
 
 | Unit | naive | ridge-w | GBM-w | chronos-0shot | Best |
 |---|---|---|---|---|---|
@@ -217,20 +217,27 @@ optional extras.
   strongly thermal-linear; the honest floor is non-trivial.
 - H2 (zero-shot chronos-bolt-mini): **fails at fine cadences and long AR
   horizons** (IE 15-min: 14.3 MAPE; AU 5-min sMAPE 14.6–34.1 — model simply
-  cannot AR-extend 192–576 steps well). BUT on GB (30-min, 3 weeks public
+    cannot AR-extend 192–576 steps well). BUT on GB (30-min, 3 weeks public
   arrears for every one) zero-shot **beats naive 8.98 vs 9.49** and is the
-  best on the anomalous slices: **cold-decile 7.99 vs 11.74 naive / 13.10
-  GBM**, bank holidays 11.29 vs 11.79 GBM. That is exactly the H2 claim —
-  limited by cadence and publication latency, not by domain shift alone.
+  best on the anomalous slices, measured on the common anchor set:
+  **cold-decile 9.16 vs 9.84 naive / 15.29 GBM**, weekends 11.63 vs 13.01
+  naive. Bank holidays are NOT a Chronos win: GBM leads 8.10 vs 11.29
+  (only 2 holiday anchors in the common set — thin evidence either way).
+  That is exactly the H2 claim — limited by cadence and publication
+  latency, not by domain shift alone.
 - Ridge's GB failure (11.77) vs GBM (8.66) shows nonlinearity matters where
   features are few (lags ≥ 4 weeks); Australia's richer same-week lags let
   linear win on three units.
-- chronos-GB by-month: wins in 2026-05 (6.32 vs 8.92 naive), Jun-Aug loses
-  — evidence for further study is real but narrow; E5 should try hourly
-  resampled Chronos for IE/AU and bolt-small once RAM allows.
+- chronos-GB by-month (common anchors): wins in 2026-04 (16.15 vs 19.98
+  naive) and 2026-05 (6.32 vs 8.57), Jun-Aug loses — evidence for further
+  study is real but narrow; E5 should try hourly resampled Chronos for
+  IE/AU and bolt-small once RAM allows.
 
-Artifacts: `reports/model_zoo_20260926T203017Z.{json,md}` (by-month,
-by-horizon, slices, climatological cold-day lists, warmup/post-warmup).
+Artifacts: `reports/model_zoo_20260926T204652Z.{json,md}` (by-month,
+by-horizon, slices — all on the common anchor intersection — climatological
+cold-day lists, warmup/post-warmup). The earlier `...203017Z` artifacts
+predate the common-anchor slice fix (G3 review) and are kept for the audit
+trail; their slice/bank-holiday numbers are superseded.
 
 ### For E3/E5 (recorded during E2): GB operator forecast source
 
