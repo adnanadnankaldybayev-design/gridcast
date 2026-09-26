@@ -4,6 +4,7 @@ month/week calendars, the normalized demand schema and Parquet output."""
 from __future__ import annotations
 
 import logging
+import os
 import time
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -47,7 +48,11 @@ def fetch(
     headers: dict | None = None,
     timeout: int = 120,
 ) -> bytes:
-    resp = session.get(url, params=params, headers=headers, timeout=timeout)
+    try:
+        resp = session.get(url, params=params, headers=headers, timeout=timeout)
+    except requests.RequestException as exc:
+        # adapters and the CLI only handle IngestError
+        raise IngestError(f"GET {url} failed: {exc}") from exc
     if resp.status_code != 200:
         raise IngestError(f"GET {resp.url} -> HTTP {resp.status_code}")
     return resp.content
@@ -129,14 +134,30 @@ def normalize(df: pd.DataFrame, market: str, region: str, source: str) -> pd.Dat
 
 
 def write_parquet(df: pd.DataFrame, market: str, out_dir: Path | None = None) -> list[Path]:
-    """Write monthly partition files demand_{MARKET}_{YYYY-MM}.parquet (idempotent:
-    months present in `df` are rewritten, other partitions untouched)."""
+    """Write monthly partition files demand_{MARKET}_{YYYY-MM}.parquet.
+
+    Months present in `df` are merged with any existing partition on disk
+    (fresh rows win on (timestamp, region) conflicts), so a narrow incremental
+    re-ingest never truncates earlier history. Writes go through a temp file +
+    os.replace, so an interrupted run cannot leave a half-written partition
+    behind."""
     out_dir = out_dir or PROCESSED_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
     for ym, part in df.groupby(df["timestamp"].dt.strftime("%Y-%m")):
         path = out_dir / f"demand_{market}_{ym}.parquet"
-        part.reset_index(drop=True).to_parquet(path, index=False)
+        if path.exists():
+            part = (
+                pd.concat([pd.read_parquet(path), part], ignore_index=True)
+                .drop_duplicates(subset=["timestamp", "region"], keep="last")
+                .sort_values("timestamp")
+            )
+        tmp = path.with_suffix(".tmp")
+        try:
+            part.reset_index(drop=True).to_parquet(tmp, index=False)
+            os.replace(tmp, path)
+        finally:
+            tmp.unlink(missing_ok=True)
         written.append(path)
     return written
 

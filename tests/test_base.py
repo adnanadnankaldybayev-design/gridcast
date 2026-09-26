@@ -1,8 +1,10 @@
 from datetime import date
 
 import pandas as pd
+import pytest
+import requests
 
-from gridcast.ingest.base import midnight_utc, month_range, week_ranges
+from gridcast.ingest.base import IngestError, fetch, midnight_utc, month_range, week_ranges
 
 
 def test_month_range_inclusive_cross_year():
@@ -32,3 +34,12 @@ def test_midnight_utc_is_dst_safe():
     assert out.iloc[0] == pd.Timestamp("2026-03-29 00:00", tz="UTC")
     # 2025-10-26 00:00 Europe/London is still BST (UTC+1) until 02:00
     assert out.iloc[1] == pd.Timestamp("2025-10-25 23:00", tz="UTC")
+
+
+def test_fetch_wraps_network_errors_in_ingest_error():
+    class BrokenSession:
+        def get(self, *args, **kwargs):
+            raise requests.ConnectionError("simulated TCP reset")
+
+    with pytest.raises(IngestError, match=r"GET https://example\.test/x failed"):
+        fetch(BrokenSession(), "https://example.test/x")

@@ -50,6 +50,51 @@ def test_write_partitions_by_month_and_is_idempotent(tmp_path):
     assert str(read_back["timestamp"].dtype) == "datetime64[us, UTC]"
 
 
+def test_narrow_reingest_merges_instead_of_truncating(tmp_path):
+    """A daily incremental run must not destroy the earlier part of the month."""
+    grid = pd.date_range("2026-03-01", periods=48 * 31, freq="30min", tz="UTC")  # full March
+    full = normalize(
+        pd.DataFrame({"timestamp": grid, "demand_mw": 1.0, "forecast_mw": pd.NA}),
+        "GB",
+        "GB",
+        "test",
+    )
+    write_parquet(full, "GB", tmp_path)
+
+    late = normalize(
+        pd.DataFrame(
+            {"timestamp": grid[-4:], "demand_mw": [9.1, 9.2, 9.3, 9.4], "forecast_mw": pd.NA}
+        ),
+        "GB",
+        "GB",
+        "test",
+    )
+    write_parquet(late, "GB", tmp_path)
+
+    back = read_processed("GB", tmp_path)
+    assert len(back) == len(grid)  # old rows survived the narrow re-ingest
+    assert back["demand_mw"].tail(4).tolist() == [9.1, 9.2, 9.3, 9.4]  # fresh values win
+    assert back["demand_mw"].head(1).item() == 1.0
+    assert not back.duplicated(subset=["timestamp", "region"]).any()
+
+
+def test_failed_write_leaves_existing_partition_intact(tmp_path, monkeypatch):
+    df = normalize(_sample(), "GB", "GB", "test")
+    write_parquet(df, "GB", tmp_path)
+
+    def boom(self, path, **kwargs):
+        raise OSError("disk full mid-write")
+
+    monkeypatch.setattr(pd.DataFrame, "to_parquet", boom)
+    with pytest.raises(OSError, match="disk full"):
+        write_parquet(df, "GB", tmp_path)
+    monkeypatch.undo()
+
+    back = read_processed("GB", tmp_path)
+    assert len(back) == 4  # original partition untouched
+    assert not list(tmp_path.glob("*.tmp"))  # no temp-file litter
+
+
 def test_read_processed_missing_dir_is_empty(tmp_path):
     back = read_processed("AU", tmp_path)
     assert back.empty
