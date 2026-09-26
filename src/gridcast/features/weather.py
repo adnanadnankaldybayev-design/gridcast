@@ -1,0 +1,161 @@
+"""Weather features from the Open-Meteo Archive API (free, no key).
+
+Verified live 2026-09-26: https://archive-api.open-meteo.com/v1/archive,
+hourly temperature_2m / relative_humidity_2m / wind_speed_10m, timezone=UTC,
+data available up to ~T-1 day.
+
+Pragmatic point choice (documented, population/demand weighted) — all config,
+new markets are one row each in POINTS:
+  GB         London 0.45, Manchester 0.35, Glasgow 0.20
+  IE (All-Island) Dublin 1.0 (island demand & population concentrate on ROI)
+  AU regions one capital per NEM region:
+  NSW1 Sydney, QLD1 Brisbane, VIC1 Melbourne, SA1 Adelaide, TAS1 Hobart
+  NEM_TOTAL  consumption-share composite NSW .40, QLD .25, VIC .25, SA .08, TAS .02
+
+HONESTY (limitation): in backtests this is *archived reanalysis* — a proxy
+for a perfect weather forecast. Live day-ahead operation will use the NWP
+forecast instead; the weather ablation (gbm vs gbm-no-weather) bounds the
+benefit a real weather forecast can add.
+
+Caching: raw JSON snapshots per fetched range on disk (data/raw/weather/,
+gitignored); per-point memo in-process grows to cover every requested range,
+so a full backtest costs one fetch per point per session.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from datetime import date
+from pathlib import Path
+
+import pandas as pd
+
+from gridcast.config import RAW_DIR
+from gridcast.ingest.base import IngestError, fetch, make_session
+
+log = logging.getLogger(__name__)
+
+ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+VARIABLES = ("temperature_2m", "relative_humidity_2m", "wind_speed_10m")
+
+POINTS: dict[str, tuple[tuple[float, float, float], ...]] = {
+    "GB": ((51.5074, -0.1278, 0.45), (53.4808, -2.2426, 0.35), (55.8642, -4.2518, 0.20)),
+    "ALL": ((53.3498, -6.2603, 1.0),),
+    "NSW1": ((-33.8688, 151.2093, 1.0),),
+    "QLD1": ((-27.4698, 153.0251, 1.0),),
+    "SA1": ((-34.9285, 138.6007, 1.0),),
+    "TAS1": ((-42.8821, 147.3272, 1.0),),
+    "VIC1": ((-37.8136, 144.9631, 1.0),),
+    "NEM_TOTAL": (
+        (-33.8688, 151.2093, 0.40),
+        (-27.4698, 153.0251, 0.25),
+        (-37.8136, 144.9631, 0.25),
+        (-34.9285, 138.6007, 0.08),
+        (-42.8821, 147.3272, 0.02),
+    ),
+}
+
+WEATHER_CACHE_DIR = RAW_DIR / "weather"
+
+_point_memo: dict[tuple[float, float], pd.DataFrame] = {}
+
+
+def parse_response(text: str) -> pd.DataFrame:
+    payload = json.loads(text)
+    hourly = payload.get("hourly")
+    if not hourly or "time" not in hourly:
+        raise IngestError(f"Open-Meteo: unexpected payload keys {sorted(payload)}")
+    df = pd.DataFrame(hourly)
+    df["timestamp"] = pd.to_datetime(df.pop("time")).dt.tz_localize("UTC")
+    df = df.set_index("timestamp").sort_index()
+    missing = [v for v in VARIABLES if v not in df.columns]
+    if missing:
+        raise IngestError(f"Open-Meteo: missing variables {missing}")
+    return df.astype("float32")
+
+
+def _download_range(session, lat: float, lon: float, start: date, end: date) -> pd.DataFrame:
+    cache_dir = WEATHER_CACHE_DIR
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    content = fetch(
+        session,
+        ARCHIVE_URL,
+        params={
+            "latitude": lat,
+            "longitude": lon,
+            "start_date": start.isoformat(),
+            "end_date": end.isoformat(),
+            "hourly": ",".join(VARIABLES),
+            "timezone": "UTC",
+        },
+        timeout=120,
+    )
+    text = content.decode("utf-8")
+    stamp = pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%SZ")
+    (cache_dir / f"{stamp}_{lat:.4f}_{lon:.4f}_{start}_{end}.json").write_text(
+        text, encoding="utf-8"
+    )
+    return parse_response(text)
+
+
+def _seed_from_disk(key: tuple[float, float], cache_dir: Path) -> pd.DataFrame | None:
+    """Load every previously stored snapshot for this point (any date range),
+    merged and deduplicated. Makes backtests network-free after one warmup."""
+    frames = []
+    for path in cache_dir.glob(f"*_{key[0]:.4f}_{key[1]:.4f}_*.json"):
+        try:
+            frames.append(parse_response(path.read_text(encoding="utf-8")))
+        except IngestError:
+            log.warning("Open-Meteo: unparsable snapshot skipped: %s", path.name)
+    if not frames:
+        return None
+    out = pd.concat(frames)
+    return out[~out.index.duplicated(keep="last")].sort_index()
+
+
+def point_data(
+    lat: float, lon: float, start: date, end: date, session=None
+) -> pd.DataFrame:
+    """Hourly weather for one point over [start, end]; per-point memo grows to
+    cover any requested span (one fetch per uncovered extension)."""
+    key = (round(lat, 4), round(lon, 4))
+    have = _point_memo.get(key)
+    if have is None:
+        have = _seed_from_disk(key, WEATHER_CACHE_DIR)
+    if have is not None and len(have):
+        have = have[~have.index.duplicated(keep="last")].sort_index()
+        _point_memo[key] = have
+    have_min = have.index[0].date() if have is not None and len(have) else None
+    have_max = have.index[-1].date() if have is not None and len(have) else None
+    if have is None or start < have_min or end > have_max:
+        session = session or make_session()
+        fetch_start = min(start, have_min) if have_min else start
+        fetch_end = max(end, have_max) if have_max else end
+        fresh = _download_range(session, lat, lon, fetch_start, fetch_end)
+        have = pd.concat([have, fresh]) if have is not None else fresh
+        have = have[~have.index.duplicated(keep="last")].sort_index()
+        _point_memo[key] = have
+        log.info("Open-Meteo: %s now covers %s..%s (%d h)", key, have_min, have_max, len(have))
+    start_ts = pd.Timestamp(start, tz="UTC")
+    end_ts = pd.Timestamp(end, tz="UTC") + pd.Timedelta(days=1)
+    return have.loc[(have.index >= start_ts) & (have.index < end_ts)]
+
+
+def seed_point_data(lat: float, lon: float, df: pd.DataFrame) -> None:
+    """Inject stored weather (tests / offline runs)."""
+    _point_memo[(round(lat, 4), round(lon, 4))] = df.sort_index()
+
+
+def unit_weather(
+    unit: str, start: date, end: date, session=None
+) -> pd.DataFrame:
+    """Weighted-mean hourly weather for a market unit, UTC index."""
+    parts = []
+    for lat, lon, weight in POINTS[unit]:
+        parts.append(point_data(lat, lon, start, end, session) * weight)
+    out = parts[0]
+    for p in parts[1:]:
+        out = out.add(p, fill_value=None)
+    out.columns = [f"w_{c}" for c in out.columns]
+    return out.sort_index()
