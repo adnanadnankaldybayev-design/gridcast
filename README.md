@@ -4,9 +4,9 @@ Open multi-market electricity demand forecasting (Great Britain, Ireland,
 Australia/NEM) with a live, self-updating public dashboard and an honest
 daily scoreboard of forecast vs. actual.
 
-Status: **E3 done** — features (calendar/weather/lags), LightGBM with an
-honest publication-safe lag design, weather ablation and day-type slices.
-H1 verdict below; E4 (model zoo + probabilistic) next.
+Status: **E4 done** — trust layer hardening + 4-model zoo (naive / ridge /
+LightGBM / zero-shot Chronos-Bolt-mini) compared on one leak-free protocol.
+H1 re-confirmed; H2 has first real evidence (see below). E5 next.
 See `SPEC.md` for the full plan.
 
 ## Data sources (verified against the live services 2026-09-26)
@@ -182,6 +182,55 @@ lags smooth it); NSW1 & NEM weekends; QLD1 bank holidays (small n); several
 early months during model warmup (GB Apr/May, IE Apr, NSW1 Mar-May).
 Full by-month / by-horizon / slice tables and cold-day date lists:
 `reports/h1_comparison_20260926T190426Z.{json,md}`.
+
+## Model zoo (E4) — 4 models, one protocol, common anchor set
+
+Runner: `gridcast compare` (`--models`, `--chronos-stride`, `--allow-dirty`).
+Trust additions (E4a): git-stamped reports with fail-loud provenance, reports
+REFUSE a dirty tree without `--allow-dirty`, warmup-flagged anchors with
+post-warmup aggregates, compact per-point weather parquet cache (1715 legacy
+snapshots migrated to 9 files), cold-slice thresholds from 1-year-back
+climatology (never the measured window), Chronos anchor stride = 6
+(rotates weekdays; slice-complete), cross-model metrics on the COMMON
+anchor intersection.
+
+Chronos-Bolt-mini runs ZERO-SHOT on CPU (`models/chronos.py`; install via
+`.[chronos]`); fit() is a context cut by design; `torch` heavy deps are
+optional extras.
+
+### Measured on the full archive (common anchor set; 2026-09-26, SHA 61906c8+)
+
+| Unit | naive | ridge-w | GBM-w | chronos-0shot | Best |
+|---|---|---|---|---|---|
+| GB (MAPE) | 9.49 | 11.77 | **8.66** | 8.98 | GBM |
+| IE (MAPE) | 3.76 | 3.81 | **3.33** | 14.26 | GBM |
+| AU NSW1 (sMAPE) | 7.16 | 6.69 | **6.52** | 20.63 | GBM |
+| AU QLD1 (sMAPE) | 5.62 | 5.03 | **3.91** | 22.87 | GBM |
+| AU SA1 (sMAPE) | 17.18 | 16.76 | **14.44** | 34.10 | GBM |
+| AU TAS1 (sMAPE) | 7.81 | **6.15** | 6.36 | 14.63 | ridge |
+| AU VIC1 (sMAPE) | 10.09 | **7.57** | 8.08 | 21.87 | ridge |
+| AU NEM total (sMAPE) | 4.95 | **4.48** | 4.76 | 20.92 | ridge |
+
+**Findings (honest):**
+- H1 (GBM beats naive): **8/8 units, re-confirmed on a second anchor set**,
+  margins −0.2…−2.7 pts; but ridge wins on TAS1/VIC1/NEM — Australia is
+  strongly thermal-linear; the honest floor is non-trivial.
+- H2 (zero-shot chronos-bolt-mini): **fails at fine cadences and long AR
+  horizons** (IE 15-min: 14.3 MAPE; AU 5-min sMAPE 14.6–34.1 — model simply
+  cannot AR-extend 192–576 steps well). BUT on GB (30-min, 3 weeks public
+  arrears for every one) zero-shot **beats naive 8.98 vs 9.49** and is the
+  best on the anomalous slices: **cold-decile 7.99 vs 11.74 naive / 13.10
+  GBM**, bank holidays 11.29 vs 11.79 GBM. That is exactly the H2 claim —
+  limited by cadence and publication latency, not by domain shift alone.
+- Ridge's GB failure (11.77) vs GBM (8.66) shows nonlinearity matters where
+  features are few (lags ≥ 4 weeks); Australia's richer same-week lags let
+  linear win on three units.
+- chronos-GB by-month: wins in 2026-05 (6.32 vs 8.92 naive), Jun-Aug loses
+  — evidence for further study is real but narrow; E5 should try hourly
+  resampled Chronos for IE/AU and bolt-small once RAM allows.
+
+Artifacts: `reports/model_zoo_20260926T203017Z.{json,md}` (by-month,
+by-horizon, slices, climatological cold-day lists, warmup/post-warmup).
 
 ### For E3/E5 (recorded during E2): GB operator forecast source
 
