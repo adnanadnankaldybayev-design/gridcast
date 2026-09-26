@@ -25,6 +25,11 @@ dev = [
     "pytest>=8",
     "ruff>=0.6",
 ]
+# heavy; install only for zero-shot runs (CPU torch: use the pytorch cpu index)
+chronos = [
+    "chronos-forecasting",
+    "torch",
+]
 
 [project.scripts]
 gridcast = "gridcast.cli:main"
@@ -36,6 +41,7 @@ where = ["src"]
 target-version = "py312"
 line-length = 100
 src = ["src", "tests"]
+exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]

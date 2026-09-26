@@ -95,7 +95,14 @@ def run_backtest(argv: list[str]) -> int:
     parser.add_argument(
         "--model",
         default="seasonal-naive-168h",
-        choices=["seasonal-naive-168h", "lightgbm-weather", "lightgbm-no-weather"],
+        choices=[
+            "seasonal-naive-168h",
+            "ridge-weather",
+            "ridge-no-weather",
+            "lightgbm-weather",
+            "lightgbm-no-weather",
+            "chronos-bolt-zero-shot",
+        ],
     )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
@@ -143,7 +150,12 @@ def run_backtest(argv: list[str]) -> int:
 
 def run_compare(argv: list[str]) -> int:
     from gridcast.eval.backtest import finish_report
-    from gridcast.eval.compare import h1_verdicts, render_markdown, run_comparison
+    from gridcast.eval.compare import (
+        DEFAULT_MODELS,
+        model_verdicts,
+        render_markdown,
+        run_comparison,
+    )
 
     parser = argparse.ArgumentParser(prog="gridcast compare")
     parser.add_argument("--market", nargs="+", choices=MARKETS, help="default: all")
@@ -151,6 +163,13 @@ def run_compare(argv: list[str]) -> int:
     parser.add_argument("--end", default=date.today().isoformat(), help="anchor window end")
     parser.add_argument(
         "--refit", type=int, default=7, help="GBM refit cadence in anchors (production-style)"
+    )
+    parser.add_argument("--models", nargs="+", default=list(DEFAULT_MODELS))
+    parser.add_argument(
+        "--chronos-stride",
+        type=int,
+        default=7,
+        help="evaluate Chronos every Nth anchor (CPU budget guard)",
     )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
@@ -170,32 +189,39 @@ def run_compare(argv: list[str]) -> int:
         markets,
         start,
         end,
+        models=tuple(args.models),
         refit_every_anchors=args.refit,
+        chronos_stride=args.chronos_stride,
         data_dir=Path(args.data_dir),
     )
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out_json = Path(args.out_dir) / f"h1_comparison_{stamp}.json"
-    report = {"comparison": comparison, "refit_every_anchors": args.refit}
+    out_json = Path(args.out_dir) / f"model_zoo_{stamp}.json"
+    report = {
+        "comparison": comparison,
+        "refit_every_anchors": args.refit,
+        "chronos_stride": args.chronos_stride,
+        "models": list(args.models),
+    }
     finish_report(report, out_json)
     out_md = out_json.with_suffix(".md")
     out_md.write_text(
         render_markdown(
             comparison,
             (args.start, args.end),
-            {"refit_every_anchors": args.refit},
+            {"refit_every_anchors": args.refit, "chronos_stride": args.chronos_stride},
         ),
         encoding="utf-8",
     )
-    for key, v in h1_verdicts(comparison).items():
-        log.info(
-            "%s: naive %s=%s, gbm %s=%s, beats=%s",
-            key,
-            v["metric"],
-            v["naive"],
-            v["metric"],
-            v["gbm_weather"],
-            v["gbm_beats_naive"],
-        )
+    for key, v in model_verdicts(comparison).items():
+        for model, entry in v["models"].items():
+            log.info(
+                "%s: %s=%s vs naive %s (beats=%s)",
+                key,
+                model,
+                entry["value"],
+                v["naive"],
+                entry["beats_naive"],
+            )
     print(f"json: {out_json}\nmd:   {out_md}")
     return 0
 

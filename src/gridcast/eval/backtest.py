@@ -68,6 +68,10 @@ class BacktestConfig:
     # warmup anchors: history shorter than this many market main-lag seasons;
     # they are flagged and also aggregated separately (post-warmup block)
     warmup_seasons: int = 2
+    # anchor subsampling every Nth anchor (eval points only; leaks impossible).
+    # Used by heavyweight models (Chronos zero-shot on CPU). Comparisons
+    # always intersect on the COMMON anchor set across models.
+    anchors_stride: int = 1
 
     def make_model(self, market: str, unit: str):
         """Model factories know the unit (calendar/weather config is per-unit).
@@ -79,6 +83,14 @@ class BacktestConfig:
             from gridcast.models.gbm import GBMModel
 
             return GBMModel(market, unit, use_weather=self.model == "lightgbm-weather")
+        if self.model in ("ridge-weather", "ridge-no-weather"):
+            from gridcast.models.ridge import RidgeModel
+
+            return RidgeModel(market, unit, use_weather=self.model == "ridge-weather")
+        if self.model == "chronos-bolt-zero-shot":
+            from gridcast.models.chronos import ChronosModel
+
+            return ChronosModel(market, unit)
         raise ValueError(f"unknown model {self.model!r}")
 
 
@@ -113,7 +125,8 @@ def anchors_for(
         if anchor >= first:
             out.append(anchor)
         anchor += step
-    return pd.DatetimeIndex(out)
+    stride = max(1, cfg.anchors_stride)
+    return pd.DatetimeIndex(out)[::stride]
 
 
 def rolling_origin(
