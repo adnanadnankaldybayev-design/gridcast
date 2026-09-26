@@ -96,24 +96,31 @@ def test_no_leakage_spy_model_sees_only_published_past():
 
 
 def test_future_noise_never_changes_predictions():
-    """Garbage values after 2026-03-11 18:00 must not leak into predictions:
-    compare predictions clean-vs-noisy where both runs share anchors/history."""
-    s_clean = synth_series()
-    s_noisy = s_clean.copy()
-    s_noisy.loc[s_noisy.index >= pd.Timestamp("2026-03-11 18:00", tz="UTC")] = 1e12
+    """Poison values after the anchor's publication cutoff must not leak into
+    predictions. History is deliberately shorter than one season, so EVERY
+    forecast comes from the last-known fallback — the value at the cutoff:
+    an engine that reads past the cutoff (e.g. the review's `loc[:anchor]`
+    leak) swallows the poison and fails here on all 96 horizon points."""
+    idx = pd.date_range("2026-03-08", periods=6 * 48, freq="30min", tz="UTC")
+    s_clean = pd.Series(5000 + 500 * np.sin(np.arange(len(idx)) * TAU / 48), index=idx)
     cfg = make_cfg(pub_lag_days={"GB": 0.25})
-    start = pd.Timestamp("2026-03-10", tz="UTC")
-    end = pd.Timestamp("2026-03-11", tz="UTC")
+    start = pd.Timestamp("2026-03-09", tz="UTC")
+    end = pd.Timestamp("2026-03-10", tz="UTC")  # anchors_for treats `end` as a midnight bound
+    cutoff = pd.Timestamp("2026-03-09 06:00", tz="UTC")  # single anchor 12:00 - 6h lag
+    s_noisy = s_clean.copy()
+    s_noisy.loc[s_noisy.index > cutoff] = 1e12
     bt_clean = rolling_origin(s_clean, "GB", "GB", cfg, start, end)
     bt_noisy = rolling_origin(s_noisy, "GB", "GB", cfg, start, end)
     merged = bt_clean.merge(
         bt_noisy, on=["anchor", "timestamp"], suffixes=("_clean", "_noisy")
     )
-    assert len(merged) > 50
+    assert len(merged) == 96
     assert (merged["predicted_clean"] == merged["predicted_noisy"]).all()
-    # and actuals in the common region really are the same (sanity of the setup)
-    common = merged[merged["timestamp"] < pd.Timestamp("2026-03-11 18:00", tz="UTC")]
-    assert (common["actual_clean"] == common["actual_noisy"]).all()
+    # the poison really sits in the leak window a broken engine would read
+    leak_window = s_noisy.loc[cutoff + pd.Timedelta(minutes=30) : cutoff + pd.Timedelta(hours=6)]
+    assert (leak_window == 1e12).all()
+    # and predictions really exercise the last-known fallback (else the test is blind)
+    assert merged["predicted_clean"].nunique() == 1
 
 
 def test_dst_short_day_keeps_horizon_grid():
