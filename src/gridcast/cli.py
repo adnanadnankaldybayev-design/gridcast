@@ -1,6 +1,8 @@
 """gridcast CLI.
 
-Usage: gridcast ingest [--all | --market GB IE ...] [--start YYYY-MM-DD] [--end YYYY-MM-DD]
+Usage:
+  gridcast ingest   [--all | --market GB IE ...] [--start YYYY-MM-DD] [--end YYYY-MM-DD]
+  gridcast backtest [--market GB IE ...] [--start YYYY-MM-DD] [--end YYYY-MM-DD] [options]
 """
 
 from __future__ import annotations
@@ -8,11 +10,12 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import date, datetime
+from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pandas as pd
 
-from gridcast.config import MARKETS, PROCESSED_DIR, RAW_DIR
+from gridcast.config import MARKETS, PROCESSED_DIR, RAW_DIR, REPO_ROOT
 from gridcast.ingest import ADAPTERS
 from gridcast.ingest.base import IngestError, summarize, write_parquet
 
@@ -64,11 +67,63 @@ def run_ingest(argv: list[str]) -> int:
     return 1 if failed else 0
 
 
+def run_backtest(argv: list[str]) -> int:
+    from gridcast.eval.backtest import BacktestConfig, finish_report, run_backtest
+
+    parser = argparse.ArgumentParser(prog="gridcast backtest")
+    parser.add_argument("--market", nargs="+", choices=MARKETS, help="default: all")
+    parser.add_argument("--start", default="2026-03-01", help="anchor window start (YYYY-MM-DD)")
+    parser.add_argument(
+        "--end", default=date.today().isoformat(), help="anchor window end (YYYY-MM-DD)"
+    )
+    parser.add_argument("--issue-hour", type=int, default=12, help="anchor hour UTC")
+    parser.add_argument("--step-hours", type=int, default=24)
+    parser.add_argument("--horizon-hours", type=int, default=48)
+    parser.add_argument("--train-days", type=int, default=None, help="omit = expanding window")
+    parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
+    parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
+    args = parser.parse_args(argv)
+
+    cfg = BacktestConfig(
+        step_hours=args.step_hours,
+        horizon_hours=args.horizon_hours,
+        issue_hour_utc=args.issue_hour,
+        train_days=args.train_days,
+    )
+    markets = tuple(args.market) if args.market else MARKETS
+    start = pd.Timestamp(args.start, tz="UTC")
+    end = pd.Timestamp(args.end, tz="UTC") + pd.Timedelta(days=1)
+
+    report, _frames = run_backtest(markets, start, end, cfg, Path(args.data_dir))
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    out_path = Path(args.out_dir) / f"backtest_{cfg.model}_{stamp}.json"
+    report = finish_report(report, out_path)
+
+    rows = []
+    for market, units in report["results"].items():
+        for unit, res in units.items():
+            key = res["primary_metric"]
+            rows.append(
+                {
+                    "unit": f"{market}/{unit}",
+                    "primary": f"{key}={res['overall'][key]}",
+                    "mae_mw": res["overall"]["mae_mw"],
+                    "n": res["overall"]["n"],
+                    "anchors": res["n_anchors"],
+                }
+            )
+    print(pd.DataFrame(rows).to_string(index=False))
+    print(f"report: {out_path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "ingest":
         return run_ingest(argv[1:])
+    if argv and argv[0] == "backtest":
+        return run_backtest(argv[1:])
     print(__doc__)
     return 0
 
