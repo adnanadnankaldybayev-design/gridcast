@@ -39,25 +39,52 @@ def _slice_dates(frame: pd.DataFrame, unit: str) -> dict[str, set[date]]:
     }
 
 
-def _cold_dates(frame: pd.DataFrame, unit: str) -> set[date]:
-    start = frame["timestamp"].min().date()
-    end = frame["timestamp"].max().date()
+def _daily_temps(unit: str, start: date, end: date) -> pd.Series:
     w = unit_weather(unit, start, end)
-    daily = w.groupby(w.index.tz_convert(UNIT_TZ[unit]).date)["w_temperature_2m"].mean()
-    k = max(1, int(len(daily) * COLD_DECILE))
-    return set(daily.nsmallest(k).index)
+    return w.groupby(w.index.tz_convert(UNIT_TZ[unit]).date)["w_temperature_2m"].mean()
+
+
+def _cold_dates_with_provenance(
+    frame: pd.DataFrame, unit: str
+) -> tuple[set[date], dict]:
+    """Cold-decile days of the EVALUATION window, with the threshold learned
+    ONLY on the pre-evaluation reference period (train-only stance; avoids the
+    soft leakage of selecting slices from the window being measured).
+
+    Reference: the 90 days immediately before the first evaluated timestamp.
+    Fallback (reference < 20 days): whole-window decile, flagged honestly.
+    """
+    eval_start = frame["timestamp"].min().date()
+    eval_end = frame["timestamp"].max().date()
+    tz = UNIT_TZ[unit]
+    ref_start = eval_start - pd.Timedelta(days=90)
+    ref_end = eval_start - pd.Timedelta(days=1)
+    eval_daily = _daily_temps(unit, eval_start, eval_end)
+    ref_daily = _daily_temps(unit, ref_start, ref_end)
+    if len(ref_daily) >= 20:
+        threshold = float(ref_daily.quantile(COLD_DECILE))
+        basis = f"pre-evaluation reference ({len(ref_daily)} days)"
+    else:
+        threshold = float(eval_daily.quantile(COLD_DECILE))
+        basis = f"whole-window (insufficient reference: {len(ref_daily)} days)"
+    return set(eval_daily[eval_daily <= threshold].index), {
+        "threshold_c": round(threshold, 2),
+        "threshold_basis": basis,
+        "tz": tz,
+    }
 
 
 def slice_metrics(
     unit_frames: dict[str, pd.DataFrame], unit: str, floor_mw: float = 100.0
 ) -> dict:
     """unit_frames: model -> frame. Returns {slice: {model: metrics}} plus
-    slice sizes and the cold-day list for transparency."""
+    slice sizes, threshold provenance and the cold-day list for transparency."""
     if not unit_frames:
         return {}
     any_frame = next(iter(unit_frames.values()))
     day_slices = _slice_dates(any_frame, unit)
-    day_slices["cold_10pct"] = _cold_dates(any_frame, unit)
+    cold_dates, cold_meta = _cold_dates_with_provenance(any_frame, unit)
+    day_slices["cold_10pct"] = cold_dates
 
     out = {}
     for name, dates in day_slices.items():
@@ -68,6 +95,6 @@ def slice_metrics(
             out[name][model] = (
                 summarize(sub["actual"], sub["predicted"], floor_mw) if len(sub) else None
             )
-    if "cold_10pct" in day_slices:
-        out["cold_10pct"]["dates"] = sorted(str(d) for d in day_slices["cold_10pct"])
+    out["cold_10pct"]["dates"] = sorted(str(d) for d in day_slices["cold_10pct"])
+    out["cold_10pct"].update(cold_meta)
     return out

@@ -67,6 +67,18 @@ def run_ingest(argv: list[str]) -> int:
     return 1 if failed else 0
 
 
+def _tree_guard(allow_dirty: bool) -> None:
+    if allow_dirty:
+        return
+    from gridcast.eval.backtest import assert_clean_tree
+
+    try:
+        assert_clean_tree(REPO_ROOT)
+    except RuntimeError as exc:
+        print(f"refusing to write report: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
+
+
 def run_backtest(argv: list[str]) -> int:
     from gridcast.eval.backtest import BacktestConfig, finish_report, run_backtest
 
@@ -87,7 +99,13 @@ def run_backtest(argv: list[str]) -> int:
     )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
+    parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="write the report even from a dirty tree (SHA no longer guarantees the code)",
+    )
     args = parser.parse_args(argv)
+    _tree_guard(args.allow_dirty)
 
     cfg = BacktestConfig(
         step_hours=args.step_hours,
@@ -136,7 +154,13 @@ def run_compare(argv: list[str]) -> int:
     )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
+    parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="write the report even from a dirty tree",
+    )
     args = parser.parse_args(argv)
+    _tree_guard(args.allow_dirty)
 
     markets = tuple(args.market) if args.market else MARKETS
     start = pd.Timestamp(args.start, tz="UTC")

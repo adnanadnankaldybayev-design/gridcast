@@ -17,9 +17,12 @@ for a perfect weather forecast. Live day-ahead operation will use the NWP
 forecast instead; the weather ablation (gbm vs gbm-no-weather) bounds the
 benefit a real weather forecast can add.
 
-Caching: raw JSON snapshots per fetched range on disk (data/raw/weather/,
-gitignored); per-point memo in-process grows to cover every requested range,
-so a full backtest costs one fetch per point per session.
+Caching: one append-only parquet per weather point
+(data/raw/weather/{lat}_{lon}.parquet, gitignored), merged atomically after
+every fetch — no thousand-file snapshot litter. Legacy per-request JSON
+snapshots are still READ (backward compatibility) and collapsed into the
+parquet store by migrate_weather_cache(); per-point memo in-process grows to
+cover every requested range, so a full backtest is network-free after warmup.
 """
 
 from __future__ import annotations
@@ -67,7 +70,9 @@ def parse_response(text: str) -> pd.DataFrame:
     if not hourly or "time" not in hourly:
         raise IngestError(f"Open-Meteo: unexpected payload keys {sorted(payload)}")
     df = pd.DataFrame(hourly)
-    df["timestamp"] = pd.to_datetime(df.pop("time")).dt.tz_localize("UTC")
+    ts = pd.to_datetime(df.pop("time"))
+    # real API sends naive strings; tolerate tz-aware too (tests, future formats)
+    df["timestamp"] = ts.dt.tz_localize("UTC") if ts.dt.tz is None else ts.dt.tz_convert("UTC")
     df = df.set_index("timestamp").sort_index()
     missing = [v for v in VARIABLES if v not in df.columns]
     if missing:
@@ -75,9 +80,29 @@ def parse_response(text: str) -> pd.DataFrame:
     return df.astype("float32")
 
 
+def _point_parquet(cache_dir: Path, lat: float, lon: float) -> Path:
+    return cache_dir / f"{lat:.4f}_{lon:.4f}.parquet"
+
+
+def _atomic_write_parquet(df: pd.DataFrame, path: Path) -> None:
+    import os
+
+    tmp = path.with_suffix(".tmp")
+    try:
+        df.reset_index().to_parquet(tmp, index=False)
+        os.replace(tmp, path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def _merge(a: pd.DataFrame | None, b: pd.DataFrame) -> pd.DataFrame:
+    if a is None:
+        return b.sort_index()
+    out = pd.concat([a, b])
+    return out[~out.index.duplicated(keep="last")].sort_index()
+
+
 def _download_range(session, lat: float, lon: float, start: date, end: date) -> pd.DataFrame:
-    cache_dir = WEATHER_CACHE_DIR
-    cache_dir.mkdir(parents=True, exist_ok=True)
     content = fetch(
         session,
         ARCHIVE_URL,
@@ -91,27 +116,67 @@ def _download_range(session, lat: float, lon: float, start: date, end: date) -> 
         },
         timeout=120,
     )
-    text = content.decode("utf-8")
-    stamp = pd.Timestamp.now(tz="UTC").strftime("%Y%m%dT%H%M%SZ")
-    (cache_dir / f"{stamp}_{lat:.4f}_{lon:.4f}_{start}_{end}.json").write_text(
-        text, encoding="utf-8"
-    )
-    return parse_response(text)
+    df = parse_response(content.decode("utf-8"))
+    cache_dir = WEATHER_CACHE_DIR
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    path = _point_parquet(cache_dir, lat, lon)
+    have = pd.read_parquet(path).set_index("timestamp") if path.exists() else None
+    _atomic_write_parquet(_merge(have, df), path)
+    return df
 
 
 def _seed_from_disk(key: tuple[float, float], cache_dir: Path) -> pd.DataFrame | None:
-    """Load every previously stored snapshot for this point (any date range),
-    merged and deduplicated. Makes backtests network-free after one warmup."""
+    """Load the per-point parquet plus any legacy JSON snapshots (backward
+    compatibility), merged and deduplicated. Network-free after warmup."""
+    lat, lon = key
+    have = None
+    pq = _point_parquet(cache_dir, lat, lon)
+    if pq.exists():
+        have = pd.read_parquet(pq).set_index("timestamp").sort_index()
     frames = []
-    for path in cache_dir.glob(f"*_{key[0]:.4f}_{key[1]:.4f}_*.json"):
+    for path in cache_dir.glob(f"*_{lat:.4f}_{lon:.4f}_*.json"):
         try:
             frames.append(parse_response(path.read_text(encoding="utf-8")))
         except IngestError:
             log.warning("Open-Meteo: unparsable snapshot skipped: %s", path.name)
-    if not frames:
-        return None
-    out = pd.concat(frames)
-    return out[~out.index.duplicated(keep="last")].sort_index()
+    for f in frames:
+        have = _merge(have, f)
+    return have
+
+
+def migrate_weather_cache(cache_dir: Path | None = None) -> dict:
+    """One-time migration: collapse legacy per-request JSON snapshots into the
+    per-point parquet store, then delete the legacy files. Safe to re-run."""
+    cache_dir = cache_dir or WEATHER_CACHE_DIR
+    migrated = {}
+    legacy = sorted(p for p in cache_dir.glob("*.json") if p.name.count("_") >= 4)
+    points = {}
+    for path in legacy:
+        parts = path.stem.split("_")
+        try:
+            lat, lon = float(parts[1]), float(parts[2])
+        except (ValueError, IndexError):
+            log.warning("migrate: cannot parse point from %s, skipped", path.name)
+            continue
+        points.setdefault((lat, lon), []).append(path)
+    for (lat, lon), paths in points.items():
+        have = None
+        pq = _point_parquet(cache_dir, lat, lon)
+        if pq.exists():
+            have = pd.read_parquet(pq).set_index("timestamp")
+        for path in paths:
+            try:
+                have = _merge(have, parse_response(path.read_text(encoding="utf-8")))
+            except IngestError:
+                log.warning("migrate: unparsable %s, skipped", path.name)
+                continue
+            path.unlink()
+        if have is not None and len(have):
+            have = have.sort_index()
+            _atomic_write_parquet(have, pq)
+            migrated[f"{lat:.4f}_{lon:.4f}"] = len(have)
+    log.info("migrate_weather_cache: %s", migrated)
+    return migrated
 
 
 def point_data(

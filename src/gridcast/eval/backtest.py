@@ -42,6 +42,12 @@ PRIMARY_METRIC = {"AU": "smape_pct", "GB": "mape_pct", "IE": "mape_pct"}
 NEM_REGIONS = ("NSW1", "QLD1", "SA1", "TAS1", "VIC1")
 
 
+def min_lag_hours(market: str) -> int:
+    from gridcast.features.build import MARKET_LAG_HOURS
+
+    return min(MARKET_LAG_HOURS[market])
+
+
 @dataclass
 class BacktestConfig:
     step_hours: int = 24  # anchor cadence
@@ -59,6 +65,9 @@ class BacktestConfig:
     # converted per-market cadence and wins when set.
     min_history_points: int = 10
     min_history_days: float | None = None
+    # warmup anchors: history shorter than this many market main-lag seasons;
+    # they are flagged and also aggregated separately (post-warmup block)
+    warmup_seasons: int = 2
 
     def make_model(self, market: str, unit: str):
         """Model factories know the unit (calendar/weather config is per-unit).
@@ -164,6 +173,9 @@ def rolling_origin(
                 anchor,
                 (~valid).sum(),
             )
+        warmup = (cutoff - series.index[0]) < pd.Timedelta(
+            hours=cfg.warmup_seasons * min_lag_hours(market)
+        )
         rows.append(
             pd.DataFrame(
                 {
@@ -172,6 +184,7 @@ def rolling_origin(
                     "horizon_hours": (targets[valid] - anchor) / pd.Timedelta(hours=1),
                     "actual": actual[valid],
                     "predicted": predicted[valid],
+                    "warmup": warmup,
                 }
             )
         )
@@ -191,7 +204,16 @@ def aggregate(bt: pd.DataFrame, cfg: BacktestConfig) -> dict:
         {"month": str(m), **summarize(g["actual"], g["predicted"], floor)}
         for m, g in bt.groupby(bt["timestamp"].dt.strftime("%Y-%m"))
     ]
-    return {"overall": overall, "by_horizon": by_horizon, "by_month": by_month}
+    out = {"overall": overall, "by_horizon": by_horizon, "by_month": by_month}
+    if "warmup" in bt.columns:
+        post = bt[~bt["warmup"]]
+        warmup_anchors = int(bt[bt["warmup"]]["anchor"].nunique())
+        out["warmup_anchors"] = warmup_anchors
+        out["n_anchors_total"] = int(bt["anchor"].nunique())
+        if len(post):
+            out["overall_post_warmup"] = summarize(post["actual"], post["predicted"], floor)
+            out["post_warmup_share"] = round(len(post) / len(bt), 4)
+    return out
 
 
 def run_backtest(
@@ -233,32 +255,50 @@ def run_backtest(
     return report, frames
 
 
-def finish_report(report: dict, out_path: Path) -> dict:
+def git_state(repo_root: Path) -> dict:
+    """(sha, dirty) of the repo that produced the artifacts. Fail-loud: a
+    report with unknown provenance is worse than no report."""
+    import subprocess
+
+    def run(*args) -> str:
+        proc = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            cwd=repo_root,
+            check=True,
+        )
+        return proc.stdout.strip()
+
+    try:
+        return {
+            "git_sha": run("rev-parse", "--short", "HEAD"),
+            "git_dirty": bool(run("status", "--porcelain")),
+        }
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        raise RuntimeError(f"cannot stamp report: git failed in {repo_root}: {exc}") from exc
+
+
+def assert_clean_tree(repo_root: Path) -> None:
+    """Trust policy: artifacts are only written from a reproducible commit."""
+    state = git_state(repo_root)
+    if state["git_dirty"]:
+        raise RuntimeError(
+            "working tree is dirty — commit first (or pass --allow-dirty) so the "
+            "report's git SHA reproducibly matches its code"
+        )
+
+
+def finish_report(report: dict, out_path: Path, repo_root: Path | None = None) -> dict:
     """Stamp provenance (time, git, version) and persist."""
     import json
-    import subprocess
     from datetime import UTC, datetime
 
     from gridcast import __version__
-
-    def git(*args) -> str:
-        try:
-            return subprocess.run(
-                ["git", *args],
-                capture_output=True,
-                text=True,
-                cwd=out_path.parent.parent,
-                check=True,
-            ).stdout.strip()
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return "unknown"
+    from gridcast.config import REPO_ROOT
 
     report["generated_at"] = datetime.now(UTC).isoformat(timespec="seconds")
-    report["code"] = {
-        "gridcast_version": __version__,
-        "git_sha": git("rev-parse", "--short", "HEAD"),
-        "git_dirty": bool(git("status", "--porcelain")),
-    }
+    report["code"] = {"gridcast_version": __version__, **git_state(repo_root or REPO_ROOT)}
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     return report
