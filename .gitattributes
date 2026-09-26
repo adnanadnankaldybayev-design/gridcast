@@ -1,0 +1,3 @@
+* text=auto
+# fixtures are byte-level contracts of upstream payloads; never normalize them
+tests/fixtures/** -text
