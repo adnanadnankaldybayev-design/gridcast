@@ -28,6 +28,10 @@ class SeasonalNaive:
         self._history = history
         self._lookup = history.to_dict()
 
+    def update_history(self, history: pd.Series) -> None:
+        # the "model" is its lookup table; refreshing it IS refitting (cheap)
+        self.fit(history)
+
     def predict(self, timestamps: pd.DatetimeIndex) -> pd.Series:
         if self._history is None:
             raise RuntimeError("SeasonalNaive: predict before fit")

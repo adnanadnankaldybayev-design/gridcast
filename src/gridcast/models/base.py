@@ -25,3 +25,12 @@ class ForecastModel(Protocol):
     def predict(self, timestamps: pd.DatetimeIndex) -> pd.Series:
         """Forecast MW for each timestamp (all later than the fit cutoff)."""
         ...
+
+
+class UpdateableHistory(Protocol):
+    """Optional hook for the engine's periodic-refit mode: refresh the data
+    the model reads at prediction time (lags), without re-estimating params.
+    Must obey the same publication cutoff discipline as fit()."""
+
+    def update_history(self, history: pd.Series) -> None:
+        ...

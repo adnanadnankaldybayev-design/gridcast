@@ -41,8 +41,6 @@ def synth_series(days=60, step_min=30, start="2026-02-15"):
 class SpyModel:
     """Records its fit window; a correct engine must never feed it the
     unpublished or future part of the series."""
-
-    name = "spy"
     instances: ClassVar[list["SpyModel"]] = []
 
     def __init__(self):
@@ -63,6 +61,10 @@ def _reset_spy():
     SpyModel.instances = []
 
 
+def spy_factory(market, unit):
+    return SpyModel()
+
+
 def test_anchors_respect_issue_hour_and_step():
     s = synth_series()
     anchors = anchors_for(
@@ -79,7 +81,7 @@ def test_anchors_respect_issue_hour_and_step():
 def test_no_leakage_spy_model_sees_only_published_past():
     s = synth_series()
     cfg = make_cfg(pub_lag_days={"GB": 7.0})
-    cfg.make_model = SpyModel  # instance attribute shadows the method
+    cfg.make_model = spy_factory  # instance attribute shadows the method
     bt = rolling_origin(
         s,
         "GB",
@@ -207,3 +209,13 @@ def test_load_series_builds_nem_total(tmp_path):
     units = load_series("AU", tmp_path)
     assert set(units) == {"NSW1", "QLD1", "SA1", "TAS1", "VIC1", "NEM_TOTAL"}
     assert units["NEM_TOTAL"].iloc[0] == 1000.0 * 5 + sum(range(5))
+
+
+def test_ablation_wiring_no_weather_gets_no_weather():
+    """Regression (2026-09-26): make_model used endswith("weather"), which is
+    true for BOTH models -> the no-weather ablation silently ran with weather
+    and produced identical metrics. The verdicts depend on this wiring."""
+    cfg_w = BacktestConfig(model="lightgbm-weather")
+    cfg_n = BacktestConfig(model="lightgbm-no-weather")
+    assert cfg_w.make_model("GB", "GB").use_weather is True
+    assert cfg_n.make_model("GB", "GB").use_weather is False

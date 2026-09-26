@@ -51,10 +51,25 @@ class BacktestConfig:
     pub_lag_days: dict[str, float] = field(default_factory=lambda: dict(PUB_LAG_DAYS))
     mape_floor_mw: float = DEFAULT_MAPE_FLOOR_MW
     model: str = "seasonal-naive-168h"
+    # 1 = refit at every anchor (E2 protocol). >1 mirrors production periodic
+    # retraining (e.g. weekly): leak-free, evaluation anchors unchanged.
+    refit_every_anchors: int = 1
+    # anchors with shorter published history are skipped; raise it when the
+    # model needs real training depth (GBM warmup + fit). min_history_days is
+    # converted per-market cadence and wins when set.
+    min_history_points: int = 10
+    min_history_days: float | None = None
 
-    def make_model(self):
+    def make_model(self, market: str, unit: str):
+        """Model factories know the unit (calendar/weather config is per-unit).
+        E7 scalability: registering a new market means adding its calendar and
+        weather config rows; model code stays untouched."""
         if self.model == "seasonal-naive-168h":
             return SeasonalNaive(season_hours=168)
+        if self.model in ("lightgbm-weather", "lightgbm-no-weather"):
+            from gridcast.models.gbm import GBMModel
+
+            return GBMModel(market, unit, use_weather=self.model == "lightgbm-weather")
         raise ValueError(f"unknown model {self.model!r}")
 
 
@@ -104,18 +119,24 @@ def rolling_origin(
     step_min = CADENCE_MINUTES[market]
     lag = pd.Timedelta(days=cfg.pub_lag_days[market])
     rows = []
-    for anchor in anchors_for(series, start, end, cfg):
+    model = None
+    fits = 0
+    for i, anchor in enumerate(anchors_for(series, start, end, cfg)):
         cutoff = anchor - lag
         history = series.loc[:cutoff]
         if cfg.train_days is not None:
             history = history.loc[cutoff - pd.Timedelta(days=cfg.train_days) :]
-        if len(history) < 10:
+        min_pts = cfg.min_history_points
+        if cfg.min_history_days is not None:
+            min_pts = max(min_pts, int(cfg.min_history_days * 1440 / step_min))
+        if len(history) < min_pts:
             log.warning(
-                "%s/%s anchor %s: tiny history (%d), skipped",
+                "%s/%s anchor %s: history %d < %d, skipped",
                 market,
                 unit,
                 anchor,
                 len(history),
+                min_pts,
             )
             continue
         targets = pd.date_range(
@@ -124,8 +145,15 @@ def rolling_origin(
             freq=f"{step_min}min",
         )
         actual = series.reindex(targets)
-        model = cfg.make_model()
-        model.fit(history)
+        if model is None or i % cfg.refit_every_anchors == 0:
+            model = cfg.make_model(market, unit)
+            model.fit(history)
+            fits += 1
+        elif hasattr(model, "update_history"):
+            # production-style periodic retraining: parameters frozen since the
+            # last refit, but the lag lookup window is this anchor's published
+            # past — leak-free by the same cutoff argument
+            model.update_history(history)
         predicted = model.predict(targets)
         valid = actual.notna()
         if not valid.all():

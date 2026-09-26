@@ -80,6 +80,11 @@ def run_backtest(argv: list[str]) -> int:
     parser.add_argument("--step-hours", type=int, default=24)
     parser.add_argument("--horizon-hours", type=int, default=48)
     parser.add_argument("--train-days", type=int, default=None, help="omit = expanding window")
+    parser.add_argument(
+        "--model",
+        default="seasonal-naive-168h",
+        choices=["seasonal-naive-168h", "lightgbm-weather", "lightgbm-no-weather"],
+    )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
     args = parser.parse_args(argv)
@@ -89,6 +94,7 @@ def run_backtest(argv: list[str]) -> int:
         horizon_hours=args.horizon_hours,
         issue_hour_utc=args.issue_hour,
         train_days=args.train_days,
+        model=args.model,
     )
     markets = tuple(args.market) if args.market else MARKETS
     start = pd.Timestamp(args.start, tz="UTC")
@@ -117,6 +123,59 @@ def run_backtest(argv: list[str]) -> int:
     return 0
 
 
+def run_compare(argv: list[str]) -> int:
+    from gridcast.eval.backtest import finish_report
+    from gridcast.eval.compare import h1_verdicts, render_markdown, run_comparison
+
+    parser = argparse.ArgumentParser(prog="gridcast compare")
+    parser.add_argument("--market", nargs="+", choices=MARKETS, help="default: all")
+    parser.add_argument("--start", default="2026-03-01", help="anchor window start")
+    parser.add_argument("--end", default=date.today().isoformat(), help="anchor window end")
+    parser.add_argument(
+        "--refit", type=int, default=7, help="GBM refit cadence in anchors (production-style)"
+    )
+    parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
+    parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
+    args = parser.parse_args(argv)
+
+    markets = tuple(args.market) if args.market else MARKETS
+    start = pd.Timestamp(args.start, tz="UTC")
+    end = pd.Timestamp(args.end, tz="UTC") + pd.Timedelta(days=1)
+
+    comparison = run_comparison(
+        markets,
+        start,
+        end,
+        refit_every_anchors=args.refit,
+        data_dir=Path(args.data_dir),
+    )
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    out_json = Path(args.out_dir) / f"h1_comparison_{stamp}.json"
+    report = {"comparison": comparison, "refit_every_anchors": args.refit}
+    finish_report(report, out_json)
+    out_md = out_json.with_suffix(".md")
+    out_md.write_text(
+        render_markdown(
+            comparison,
+            (args.start, args.end),
+            {"refit_every_anchors": args.refit},
+        ),
+        encoding="utf-8",
+    )
+    for key, v in h1_verdicts(comparison).items():
+        log.info(
+            "%s: naive %s=%s, gbm %s=%s, beats=%s",
+            key,
+            v["metric"],
+            v["naive"],
+            v["metric"],
+            v["gbm_weather"],
+            v["gbm_beats_naive"],
+        )
+    print(f"json: {out_json}\nmd:   {out_md}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     argv = list(sys.argv[1:] if argv is None else argv)
@@ -124,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_ingest(argv[1:])
     if argv and argv[0] == "backtest":
         return run_backtest(argv[1:])
+    if argv and argv[0] == "compare":
+        return run_compare(argv[1:])
     print(__doc__)
     return 0
 
