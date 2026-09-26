@@ -4,8 +4,9 @@ Open multi-market electricity demand forecasting (Great Britain, Ireland,
 Australia/NEM) with a live, self-updating public dashboard and an honest
 daily scoreboard of forecast vs. actual.
 
-Status: **E2 done** (ingestion + leak-free backtest engine + seasonal-naive
-baseline with real measured numbers), E3 (GBM + features) next.
+Status: **E3 done** — features (calendar/weather/lags), LightGBM with an
+honest publication-safe lag design, weather ablation and day-type slices.
+H1 verdict below; E4 (model zoo + probabilistic) next.
 See `SPEC.md` for the full plan.
 
 ## Data sources (verified against the live services 2026-09-26)
@@ -130,6 +131,57 @@ publication lag the naive model can only use "same slot 4 weeks ago", so its
 error tracks the intraday shape (≈18 % during ramps, ≈7 % midday). Any model
 that beats it must do so under the same honesty constraint. SA1's 19 % sMAPE
 confirms midday solar volatility as the hardest forecasting case in the data.
+
+## Features and LightGBM (E3)
+
+Feature config is row-per-market (E7-ready): calendar timezones + holiday
+specs in `features/calendar.py`, weather points/weights in
+`features/weather.py`, publication-safe lag sets in `features/build.py`.
+
+- **Calendar** (`holidays` pkg): GB -> England (Easter Monday!), IE, AU per
+  NEM state; local-civil hour-of-day, dow, weekend, morning/evening ramps.
+- **Weather** (Open-Meteo Archive, no key, verified live): GB London .45 /
+  Manchester .35 / Glasgow .20; IE Dublin; AU one capital per NEM region
+  (+NEM consumption-share composite). Temperature, humidity, wind + HDD/CDD
+  18 C. Raw JSON snapshots cached (`data/raw/weather/`), backtest runs
+  network-free after warmup.
+- **Lags — the part everyone gets wrong.** A lag feature is only usable if
+  its source is *published* by issue time: `t - lag <= anchor - pub_lag`.
+  With GB's 21-day arrears, lag_168h sources are NEVER published at a 48 h
+  day-ahead horizon, so lag sets are per-market: GB {672, 840}h, IE/AU
+  {168, 336}h. (Measured consequence of getting it wrong: GB GBM hitting
+  MAPE 23-25 %, predicting spring levels in August.) LightGBM multistep is
+  DIRECT (no recursion; features per horizon point; NaN lags routed by LGBM).
+- **Honesty limits**: archive weather ≈ perfect NWP forecast (proxy) → the
+  weather value is *bounded* by the ablation below; naive publication lag
+  applies equally to all models; GBM refits every 7 anchors (weekly,
+  production-style), frozen between refits, lag window refreshed per anchor.
+
+### H1 verdict — naive vs LightGBM (rolling-origin, full archive, 2026-09-26)
+
+| Unit | naive | GBM-weather | GBM-no-weather | Beats naive? |
+|---|---|---|---|---|
+| GB (MAPE) | 9.72 | **8.35** | 9.81 | **YES (+1.37)** |
+| IE (MAPE) | 3.91 | **3.58** | 4.08 | YES (+0.33) |
+| AU NSW1 (sMAPE) | 7.01 | **6.77** | 7.69 | YES |
+| AU QLD1 (sMAPE) | 5.57 | **4.31** | 5.41 | YES (+1.26) |
+| AU SA1 (sMAPE) | 16.27 | **13.33** | 15.09 | YES (+2.93) |
+| AU TAS1 (sMAPE) | 7.51 | **6.65** | 7.52 | YES |
+| AU VIC1 (sMAPE) | 9.48 | **8.00** | 9.77 | YES |
+| AU NEM total (sMAPE) | 4.82 | **4.81** | 5.47 | **YES (+0.01, marginal)** |
+
+Weather ablation value (GBM-weather vs no-weather): −1.45 pts GB, −0.50 IE,
+−0.66 NEM, −1.75 SA1 — archive weather is worth real points; a live NWP
+forecast will capture most of it (To E5). Note: without weather the GB GBM
+(9.81) merely ties naive (9.72) — **calendar+lags alone buy nothing on GB**;
+its win comes from weather + recycling lag features properly.
+
+**Where GBM LOSES (honest, from slices/months)**: GB cold-decile days
+(naive 8.0 vs GBM 10.2 — GBM over-trusts HDD on cold snaps while the 4-week
+lags smooth it); NSW1 & NEM weekends; QLD1 bank holidays (small n); several
+early months during model warmup (GB Apr/May, IE Apr, NSW1 Mar-May).
+Full by-month / by-horizon / slice tables and cold-day date lists:
+`reports/h1_comparison_20260926T190426Z.{json,md}`.
 
 ### For E3/E5 (recorded during E2): GB operator forecast source
 
