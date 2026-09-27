@@ -59,6 +59,9 @@ class BacktestConfig:
     model: str = "seasonal-naive-168h"
     # 1 = refit at every anchor (E2 protocol). >1 mirrors production periodic
     # retraining (e.g. weekly): leak-free, evaluation anchors unchanged.
+    # NOTE: counts STRIDE positions, so with anchors_stride=6 a value of 7
+    # means refitting every ~42 days — pick a smaller number in that mode
+    # (gridcast analyze defaults to 2 ≈ 12 days).
     refit_every_anchors: int = 1
     # anchors with shorter published history are skipped; raise it when the
     # model needs real training depth (GBM warmup + fit). min_history_days is

@@ -244,7 +244,12 @@ def run_analyze(argv: list[str]) -> int:
     parser.add_argument("--start", default="2026-03-01", help="anchor window start")
     parser.add_argument("--end", default=date.today().isoformat(), help="anchor window end")
     parser.add_argument("--anchors-stride", type=int, default=6)
-    parser.add_argument("--refit", type=int, default=7)
+    parser.add_argument(
+        "--refit",
+        type=int,
+        default=2,
+        help="GBM/ridge refit every Nth strided anchor (2 at stride 6 ≈ 12 days)",
+    )
     parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
     parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
     parser.add_argument(
