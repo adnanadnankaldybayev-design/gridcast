@@ -12,13 +12,17 @@ Full benchmark card: `reports/BENCHMARK.md` (+ `latest_benchmark.{json,md}`
 rebuilt by `gridcast analyze`). Next: E9 dashboard/live.
 See `SPEC.md` for the full plan.
 
-## Data sources (verified against the live services 2026-09-26)
+## Data sources (verified against the live services 2026-09-26/27)
 
 | Market | Source (fixed in code only after a live test) | Access | Cadence |
 |---|---|---|---|
 | GB | NESO CKAN API `https://api.neso.energy`, dataset `historic-demand-data` → yearly CSV (`demanddataupdate_YYYY.csv`) | open, no key; actuals lag ~21 days | 30 min |
 | Ireland (All-Island) | EirGrid Smart Grid Dashboard RSC route `https://www.smartgriddashboard.com/ALL/demand/` with header `RSC: 1` and `?duration=week&datefrom=&dateto=` | open, no key | 15 min |
 | Australia (NEM) | AEMO `https://www.aemo.com.au/aemo/data/nem/priceanddemand/PRICE_AND_DEMAND_YYYYMM_{REGION}.csv` (NSW1/QLD1/SA1/TAS1/VIC1) | open, no key | 5 min |
+| France | RTE éCO2mix Opendatasoft `https://odre.opendatasoft.com/api/v2/catalog/datasets/eco2mix-national-cons-def/records` (+ rolling `eco2mix-national-tr` for the last ~90 days; the definitive archive refreshes in batches with months of delay) | open, no key | 15 min |
+| Germany | SMARD chart API `https://www.smard.de/app/chart_data/410/DE/…` (two-step weekly JSON; values are MWh per 15 min — converted ×4 to MW, pinned by contract test) | open, no key | 15 min |
+| Belgium | Elia `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods003/records` (eliagridload MW) | open, no key | 15 min |
+| Denmark | Energinet EDS `https://api.energidataservice.dk/dataset/ConsumptionDK3619IndustryHour` (national total = sum over DK36 industry codes; BRUTAL 429 limit honored with 'Try again in Ns' + offset paging; settlement lag ~18 days) | open, no key | 60 min |
 
 Hard-won facts encoded in the adapters (all verified on real responses):
 
