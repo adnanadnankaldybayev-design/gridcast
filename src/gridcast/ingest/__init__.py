@@ -1,6 +1,15 @@
 """Per-source adapters that normalize operator data into one demand schema."""
 
-from gridcast.ingest import aemo, be_elia, de_smard, dk_energinet, eirgrid, fr_rte, neso
+from gridcast.ingest import (
+    aemo,
+    be_elia,
+    de_smard,
+    dk_energinet,
+    eirgrid,
+    fr_rte,
+    kz_korem,
+    neso,
+)
 
 ADAPTERS = {
     "GB": neso,
@@ -10,6 +19,7 @@ ADAPTERS = {
     "DE": de_smard,
     "BE": be_elia,
     "DK": dk_energinet,
+    "KZ": kz_korem,
 }
 
 __all__ = [
@@ -20,5 +30,6 @@ __all__ = [
     "dk_energinet",
     "eirgrid",
     "fr_rte",
+    "kz_korem",
     "neso",
 ]

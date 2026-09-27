@@ -24,6 +24,8 @@ UNIT_TZ = {
     "DE": "Europe/Berlin",
     "BE": "Europe/Brussels",
     "DK": "Europe/Copenhagen",
+    "KZ": "Asia/Almaty",
+    "KZ_W": "Asia/Almaty",
 }
 
 _HOLIDAY_SPEC = {
@@ -40,6 +42,8 @@ _HOLIDAY_SPEC = {
     "DE": ("DE", None),
     "BE": ("BE", None),
     "DK": ("DK", None),
+    "KZ": ("KZ", None),
+    "KZ_W": ("KZ", None),
 }
 
 _cache: dict[str, set] = {}

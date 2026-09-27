@@ -23,6 +23,12 @@ See `SPEC.md` for the full plan.
 | Germany | SMARD chart API `https://www.smard.de/app/chart_data/410/DE/…` (two-step weekly JSON; values are MWh per 15 min — converted ×4 to MW, pinned by contract test) | open, no key | 15 min |
 | Belgium | Elia `https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods003/records` (eliagridload MW) | open, no key | 15 min |
 | Denmark | Energinet EDS `https://api.energidataservice.dk/dataset/ConsumptionDK3619IndustryHour` (national total = sum over DK36 industry codes; BRUTAL 429 limit honored with 'Try again in Ns' + offset paging; settlement lag ~18 days) | open, no key | 60 min |
+| Kazakhstan | KOREM `https://portal.korem.kz/api/ct/series?zoneId={1,2}&torgNameId=4` — no key, ~1 req/zone. **Semantics pinned: `demand` is centralized-trades *clearing* demand (~25-45 % of physical consumption), zonal объёмы — NOT physical grid load**; /api/energy/series kept as the physical cross-check. Local dt labels, offset switch UTC+6→UTC+5 on 2024-03-01 handled piecewise | open, no key; attribution: KOREM | 60 min |
+
+Cadence caveat (FR): the definitive éCO2mix export carries `consommation`
+only at **30-minute** granularity through 2026-06-30 (odd quarter-hours are
+null); the rolling dataset is full 15-min. July 2026 onward coverage is
+complete; earlier months are exactly what the operator publishes.
 
 Hard-won facts encoded in the adapters (all verified on real responses):
 

@@ -13,8 +13,14 @@ Verified live 2026-09-27:
   (MW, 15-min, may be null in placeholders), prevision_j1 (RTE's own J-1
   forecast — kept as forecast_mw for a future operator benchmark).
 
-Paging: ODS records API caps offset+limit~10k; we walk UTC-day windows
-(96 rows/day, one request when possible) so the cap never binds.
+Fetching: ODRE's WAF rate-bans fast on per-day walks (measured: ~100 requests
+in minutes → HTTP 400/403 openresty bans for tens of minutes). The records
+API walk is replaced by the `/exports/csv` endpoint: ONE request per dataset
+returns the whole filtered export as CSV (~10 MB). Day-walk fetch_day() and
+parse_records() stay for contract tests only. Exports requests are spaced
+>=20s apart.
+
+Paging: server streams the full export; no pagination needed.
 """
 
 from __future__ import annotations
@@ -109,29 +115,71 @@ def fetch_day(session, ds: str, day: date) -> str:
     ).decode("utf-8")
 
 
+EXPORT_URL = "https://odre.opendatasoft.com/api/v2/catalog/datasets/{ds}/exports/csv"
+
+
+def export_csv(
+    session, ds: str, start: date, end: date, timeout: int = 900
+) -> str:
+    from gridcast.ingest.base import fetch
+
+    return fetch(
+        session,
+        EXPORT_URL.format(ds=ds),
+        params={
+            "select": SELECT,
+            "order_by": "date_heure",
+            "where": (
+                f"date_heure >= date'{start}' and "
+                f"date_heure < date'{end + timedelta(days=1)}'"
+            ),
+        },
+        timeout=timeout,
+    ).decode("utf-8")
+
+
+def parse_export_csv(text: str) -> pd.DataFrame:
+    import io
+
+    df = pd.read_csv(
+        io.StringIO(text),
+        sep=";",
+        dtype={"consommation": "Float64", "prevision_j1": "Float64"},
+    )
+    need = {"date_heure", "consommation"}
+    missing = need - set(df.columns)
+    if missing:
+        raise IngestError(f"RTE export: missing {sorted(missing)} (cols: {list(df.columns)[:10]})")
+    ts = pd.to_datetime(df.pop("date_heure"), utc=False)
+    ts = ts.dt.tz_localize("UTC") if ts.dt.tz is None else ts.dt.tz_convert("UTC")
+    out = pd.DataFrame(
+        {
+            "timestamp": ts,
+            "demand_mw": pd.to_numeric(df["consommation"], errors="coerce"),
+            "forecast_mw": pd.to_numeric(df.get("prevision_j1"), errors="coerce"),
+        }
+    )
+    return out.sort_values("timestamp").reset_index(drop=True)
+
+
 def ingest(start: date, end: date, *, raw_dir=None, session=None, pause_s: float = PAUSE_S):
     session = session or make_session()
     frames = []
     for ds, kind in DATASETS:
-        got_any = False
-        day = start
-        while day <= end:
-            try:
-                text = fetch_day(session, ds, day)
-            except IngestError:
-                log.exception("RTE %s %s: fetch failed", ds, day)
-                day += timedelta(days=1)
-                continue
-            lo, hi = pd.Timestamp(day, tz="UTC"), pd.Timestamp(day + timedelta(days=1), tz="UTC")
-            df = parse_records(text, (lo, hi))
-            if len(df):
-                got_any = True
-                save_raw(SOURCE, f"{ds}_{day}.json", text.encode(), raw_dir)
-                frames.append(df.assign(_kind=kind))
-            day += timedelta(days=1)
-            polite_sleep(pause_s)
-        if not got_any:
-            log.info("RTE: dataset %s contributed nothing for %s..%s", ds, start, end)
+        try:
+            text = export_csv(session, ds, start, end)
+        except IngestError:
+            log.exception("RTE export %s failed", ds)
+            polite_sleep(20)
+            continue
+        save_raw(SOURCE, f"{ds}_export_{start}_{end}.csv", text.encode(), raw_dir)
+        df = parse_export_csv(text)
+        lo = pd.Timestamp(start, tz="UTC")
+        hi = pd.Timestamp(end, tz="UTC") + pd.Timedelta(days=1)
+        df = df[(df["timestamp"] >= lo) & (df["timestamp"] < hi)]
+        if len(df):
+            frames.append(df.assign(_kind=kind))
+        polite_sleep(20)
     if not frames:
         raise IngestError(f"RTE: nothing downloaded for {start}..{end}")
     # cons-def (historic) wins over rolling on overlaps; non-null wins over null

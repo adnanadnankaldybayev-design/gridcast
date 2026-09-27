@@ -76,6 +76,8 @@ POINTS: dict[str, tuple[tuple[float, float, float], ...]] = {
         (55.6761, 12.5683, 0.60),  # Copenhagen
         (56.1629, 10.2039, 0.40),  # Aarhus
     ),
+    "KZ": ((43.2400, 76.8900, 1.0),),  # Almaty / Almaty (proxy both zones)
+    "KZ_W": ((43.2400, 76.8900, 1.0),),
 }
 
 WEATHER_CACHE_DIR = RAW_DIR / "weather"

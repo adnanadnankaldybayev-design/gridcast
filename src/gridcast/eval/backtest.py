@@ -42,6 +42,7 @@ PUB_LAG_DAYS = {
     "DE": 1.0,
     "BE": 0.25,
     "DK": 18.0,
+    "KZ": 0.25,
 }
 
 # Ratio metric of record per market. SA1 demand crosses zero at solar noon,
@@ -54,6 +55,7 @@ PRIMARY_METRIC = {
     "DE": "mape_pct",
     "BE": "mape_pct",
     "DK": "mape_pct",
+    "KZ": "mape_pct",
 }
 
 NEM_REGIONS = ("NSW1", "QLD1", "SA1", "TAS1", "VIC1")

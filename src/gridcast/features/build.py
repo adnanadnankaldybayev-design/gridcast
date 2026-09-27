@@ -28,6 +28,7 @@ MARKET_LAG_HOURS = {
     "DE": (168, 336),
     "BE": (168, 336),
     "DK": (168, 336),
+    "KZ": (168, 336),
 }
 SHORT_LAG_HOURS = (24, 48)
 # Short lags stay opt-in for future recursive strategies only.
