@@ -4,9 +4,12 @@ Open multi-market electricity demand forecasting (Great Britain, Ireland,
 Australia/NEM) with a live, self-updating public dashboard and an honest
 daily scoreboard of forecast vs. actual.
 
-Status: **E4 done** — trust layer hardening + 4-model zoo (naive / ridge /
-LightGBM / zero-shot Chronos-Bolt-mini) compared on one leak-free protocol.
-H1 re-confirmed; H2 has first real evidence (see below). E5 next.
+Status: **E5+E6 done** — one-command `gridcast analyze`: 4-model backtest on
+a shared anchor universe + inverse-MAE ensemble, split-conformal intervals
+(PICP/width, sliced coverage with honest failures), Diebold–Mariano HAC
+tests, conditions H1/H2 scored and documented in `reports/BENCHMARK.md`.
+Full benchmark card: `reports/BENCHMARK.md` (+ `latest_benchmark.{json,md}`
+rebuilt by `gridcast analyze`). Next: E9 dashboard/live.
 See `SPEC.md` for the full plan.
 
 ## Data sources (verified against the live services 2026-09-26)

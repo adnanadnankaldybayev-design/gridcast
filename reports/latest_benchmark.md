@@ -1,6 +1,6 @@
 # GridCast Benchmark Card
 
-Generated from `gridcast analyze` on a live run: anchors stride=6, GBM refit every 7 anchors, min history 30d, common anchor set per unit.
+Generated from `gridcast analyze` on a live run: anchors stride=6, GBM refit every 2 anchors, min history 30d, common anchor set per unit.
 Git SHA and timestamps live in the sibling JSON (`latest_benchmark.json`).
 
 ## Models
@@ -39,212 +39,215 @@ Git SHA and timestamps live in the sibling JSON (`latest_benchmark.json`).
 
 ### GB/GB (champion: ensemble-inv-mae-14, n_anchors≈22)
                  model  mape_pct   mae_mw
-   ensemble-inv-mae-14    7.9608 1703.688
-      lightgbm-weather    8.7144 1876.047
+   ensemble-inv-mae-14    7.3649 1563.405
+      lightgbm-weather    8.2958 1757.272
 chronos-bolt-zero-shot    8.9825 1910.146
    seasonal-naive-168h    9.4883 1977.788
-         ridge-weather   16.3896 3691.146
+         ridge-weather   11.5394 2569.172
 
 ### IE/ALL (champion: lightgbm-weather, n_anchors≈30)
                  model  mape_pct  mae_mw
-      lightgbm-weather    3.5696 164.875
+      lightgbm-weather    3.4561 160.781
    seasonal-naive-168h    3.7574 175.319
-   ensemble-inv-mae-14    3.8268 177.003
-         ridge-weather    4.2424 198.926
+   ensemble-inv-mae-14    3.7646 174.091
+         ridge-weather    3.8716 180.262
 chronos-bolt-zero-shot   14.2621 640.404
 
 ### AU/NSW1 (champion: ensemble-inv-mae-14, n_anchors≈30)
                  model  smape_pct   mae_mw
-   ensemble-inv-mae-14     7.0251  517.515
+   ensemble-inv-mae-14     6.7734  496.872
+      lightgbm-weather     6.8468  498.765
+         ridge-weather     6.8741  509.106
    seasonal-naive-168h     7.1630  526.208
-      lightgbm-weather     7.3727  541.815
-         ridge-weather     7.9493  593.207
 chronos-bolt-zero-shot    20.6278 1573.607
 
 ### AU/QLD1 (champion: lightgbm-weather, n_anchors≈30)
                  model  smape_pct   mae_mw
-      lightgbm-weather     4.1260  224.934
-   ensemble-inv-mae-14     4.8552  271.993
-         ridge-weather     5.2806  298.263
+      lightgbm-weather     3.9134  214.199
+   ensemble-inv-mae-14     4.8345  269.608
+         ridge-weather     5.0158  280.400
    seasonal-naive-168h     5.6224  300.703
 chronos-bolt-zero-shot    22.8662 1339.662
 
 ### AU/SA1 (champion: lightgbm-weather, n_anchors≈30)
                  model  smape_pct  mae_mw
-      lightgbm-weather    15.6312 172.348
-   ensemble-inv-mae-14    16.0666 177.661
+      lightgbm-weather    13.9701 147.064
+   ensemble-inv-mae-14    15.1953 164.505
+         ridge-weather    16.8629 176.665
    seasonal-naive-168h    17.1778 185.641
-         ridge-weather    17.9690 194.674
 chronos-bolt-zero-shot    34.1018 408.119
 
 ### AU/TAS1 (champion: ensemble-inv-mae-14, n_anchors≈30)
                  model  smape_pct  mae_mw
-   ensemble-inv-mae-14     6.3637  69.700
-      lightgbm-weather     6.9584  74.702
-         ridge-weather     6.9821  77.010
+   ensemble-inv-mae-14     6.2028  68.055
+         ridge-weather     6.2689  69.030
+      lightgbm-weather     6.3875  69.537
    seasonal-naive-168h     7.8144  85.902
 chronos-bolt-zero-shot    14.6319 159.992
 
-### AU/VIC1 (champion: ensemble-inv-mae-14, n_anchors≈30)
+### AU/VIC1 (champion: ridge-weather, n_anchors≈30)
                  model  smape_pct   mae_mw
-   ensemble-inv-mae-14     8.5800  457.832
-         ridge-weather     8.8300  476.552
-      lightgbm-weather     9.0612  482.057
+         ridge-weather     7.4355  399.894
+   ensemble-inv-mae-14     8.0670  428.133
+      lightgbm-weather     8.3437  432.584
    seasonal-naive-168h    10.0933  545.424
 chronos-bolt-zero-shot    21.8652 1203.934
 
-### AU/NEM_TOTAL (champion: seasonal-naive-168h, n_anchors≈30)
+### AU/NEM_TOTAL (champion: ridge-weather, n_anchors≈30)
                  model  smape_pct   mae_mw
+         ridge-weather     4.6347  971.617
+   ensemble-inv-mae-14     4.9141 1024.009
    seasonal-naive-168h     4.9486 1045.110
-         ridge-weather     5.1721 1089.159
-   ensemble-inv-mae-14     5.1855 1079.513
-      lightgbm-weather     5.2640 1091.080
+      lightgbm-weather     4.9835 1028.755
 chronos-bolt-zero-shot    20.9186 4533.125
 
 ## Ensemble vs best single (delta primary metric, negative = ensemble better)
 
-- GB/GB: ensemble 7.961 vs lightgbm-weather 8.714 (delta -0.754)
-- IE/ALL: ensemble 3.827 vs lightgbm-weather 3.57 (delta 0.257)
-- AU/NSW1: ensemble 7.025 vs seasonal-naive-168h 7.163 (delta -0.138)
-- AU/QLD1: ensemble 4.855 vs lightgbm-weather 4.126 (delta 0.729)
-- AU/SA1: ensemble 16.067 vs lightgbm-weather 15.631 (delta 0.435)
-- AU/TAS1: ensemble 6.364 vs lightgbm-weather 6.958 (delta -0.595)
-- AU/VIC1: ensemble 8.58 vs ridge-weather 8.83 (delta -0.25)
-- AU/NEM_TOTAL: ensemble 5.186 vs seasonal-naive-168h 4.949 (delta 0.237)
+- GB/GB: ensemble 7.365 vs lightgbm-weather 8.296 (delta -0.931)
+- IE/ALL: ensemble 3.765 vs lightgbm-weather 3.456 (delta 0.308)
+- AU/NSW1: ensemble 6.773 vs lightgbm-weather 6.847 (delta -0.073)
+- AU/QLD1: ensemble 4.835 vs lightgbm-weather 3.913 (delta 0.921)
+- AU/SA1: ensemble 15.195 vs lightgbm-weather 13.97 (delta 1.225)
+- AU/TAS1: ensemble 6.203 vs ridge-weather 6.269 (delta -0.066)
+- AU/VIC1: ensemble 8.067 vs ridge-weather 7.436 (delta 0.631)
+- AU/NEM_TOTAL: ensemble 4.914 vs ridge-weather 4.635 (delta 0.279)
 
 ## Diebold-Mariano (two-sided, HAC Newey-West)
 
 | pair | mean loss diff | DM | p | verdict |
 |---|---|---|---|---|
-| GB/GB: lightgbm-weather__vs__seasonal-naive-168h | -101.741585 | -0.8632 | 0.38802 | NOT significant |
-| GB/GB: lightgbm-weather__vs__ridge-weather | -1815.098987 | -9.1327 | 0.0 | significant |
-| GB/GB: lightgbm-weather__vs__chronos-bolt-zero-shot | -34.098843 | -0.2568 | 0.797332 | NOT significant |
-| GB/GB: ensemble-inv-mae-14__vs__lightgbm-weather | -172.358794 | -2.4184 | 0.015588 | significant |
-| IE/ALL: lightgbm-weather__vs__seasonal-naive-168h | -10.444513 | -1.4791 | 0.13912 | NOT significant |
-| IE/ALL: lightgbm-weather__vs__ridge-weather | -34.050584 | -4.1944 | 2.7e-05 | significant |
-| IE/ALL: lightgbm-weather__vs__chronos-bolt-zero-shot | -475.529068 | -25.3375 | 0.0 | significant |
-| IE/ALL: ensemble-inv-mae-14__vs__lightgbm-weather | 12.127891 | 2.1534 | 0.031284 | significant |
-| AU/NSW1: lightgbm-weather__vs__seasonal-naive-168h | 15.606336 | 0.8496 | 0.395549 | NOT significant |
-| AU/NSW1: lightgbm-weather__vs__ridge-weather | -51.39207 | -3.0048 | 0.002658 | significant |
-| AU/NSW1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1031.792423 | -25.5559 | 0.0 | significant |
-| AU/NSW1: ensemble-inv-mae-14__vs__seasonal-naive-168h | -8.693117 | -0.5854 | 0.558272 | NOT significant |
-| AU/QLD1: lightgbm-weather__vs__seasonal-naive-168h | -75.769314 | -6.9892 | 0.0 | significant |
-| AU/QLD1: lightgbm-weather__vs__ridge-weather | -73.328449 | -8.8627 | 0.0 | significant |
-| AU/QLD1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1114.727716 | -33.0528 | 0.0 | significant |
-| AU/QLD1: ensemble-inv-mae-14__vs__lightgbm-weather | 47.058744 | 6.1019 | 0.0 | significant |
-| AU/SA1: lightgbm-weather__vs__seasonal-naive-168h | -13.293029 | -1.9837 | 0.047285 | significant |
-| AU/SA1: lightgbm-weather__vs__ridge-weather | -22.325609 | -4.3972 | 1.1e-05 | significant |
-| AU/SA1: lightgbm-weather__vs__chronos-bolt-zero-shot | -235.770557 | -19.8102 | 0.0 | significant |
-| AU/SA1: ensemble-inv-mae-14__vs__lightgbm-weather | 5.31262 | 1.5297 | 0.12609 | NOT significant |
-| AU/TAS1: lightgbm-weather__vs__seasonal-naive-168h | -11.19997 | -4.4642 | 8e-06 | significant |
-| AU/TAS1: lightgbm-weather__vs__ridge-weather | -2.308309 | -0.9986 | 0.31798 | NOT significant |
-| AU/TAS1: lightgbm-weather__vs__chronos-bolt-zero-shot | -85.29057 | -21.958 | 0.0 | significant |
-| AU/TAS1: ensemble-inv-mae-14__vs__lightgbm-weather | -5.001827 | -3.0386 | 0.002376 | significant |
-| AU/VIC1: lightgbm-weather__vs__seasonal-naive-168h | -63.366417 | -4.0072 | 6.1e-05 | significant |
-| AU/VIC1: lightgbm-weather__vs__ridge-weather | 5.505053 | 0.3853 | 0.70005 | NOT significant |
-| AU/VIC1: lightgbm-weather__vs__chronos-bolt-zero-shot | -721.876901 | -24.4859 | 0.0 | significant |
-| AU/VIC1: ensemble-inv-mae-14__vs__ridge-weather | -18.720393 | -1.8709 | 0.061358 | NOT significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__seasonal-naive-168h | 45.970272 | 1.4776 | 0.139503 | NOT significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__ridge-weather | 1.920619 | 0.0676 | 0.946108 | NOT significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__chronos-bolt-zero-shot | -3442.044746 | -31.8772 | 0.0 | significant |
-| AU/NEM_TOTAL: ensemble-inv-mae-14__vs__seasonal-naive-168h | 34.403042 | 1.2218 | 0.221771 | NOT significant |
+| GB/GB: lightgbm-weather__vs__seasonal-naive-168h | -220.51588 | -1.9988 | 0.045634 | significant |
+| GB/GB: lightgbm-weather__vs__ridge-weather | -811.899988 | -5.4022 | 0.0 | significant |
+| GB/GB: lightgbm-weather__vs__chronos-bolt-zero-shot | -152.873138 | -1.2868 | 0.198168 | NOT significant |
+| GB/GB: ensemble-inv-mae-14__vs__lightgbm-weather | -193.86782 | -2.8768 | 0.004017 | significant |
+| IE/ALL: lightgbm-weather__vs__seasonal-naive-168h | -14.537991 | -2.1632 | 0.030529 | significant |
+| IE/ALL: lightgbm-weather__vs__ridge-weather | -19.480597 | -2.8255 | 0.004721 | significant |
+| IE/ALL: lightgbm-weather__vs__chronos-bolt-zero-shot | -479.622545 | -25.2172 | 0.0 | significant |
+| IE/ALL: ensemble-inv-mae-14__vs__lightgbm-weather | 13.309936 | 2.4208 | 0.015485 | significant |
+| AU/NSW1: lightgbm-weather__vs__seasonal-naive-168h | -27.443424 | -1.5837 | 0.113265 | NOT significant |
+| AU/NSW1: lightgbm-weather__vs__ridge-weather | -10.341414 | -0.7079 | 0.479017 | NOT significant |
+| AU/NSW1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1074.842184 | -27.0119 | 0.0 | significant |
+| AU/NSW1: ensemble-inv-mae-14__vs__lightgbm-weather | -1.893184 | -0.1744 | 0.861589 | NOT significant |
+| AU/QLD1: lightgbm-weather__vs__seasonal-naive-168h | -86.504745 | -8.3883 | 0.0 | significant |
+| AU/QLD1: lightgbm-weather__vs__ridge-weather | -66.201277 | -9.0752 | 0.0 | significant |
+| AU/QLD1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1125.463146 | -33.7048 | 0.0 | significant |
+| AU/QLD1: ensemble-inv-mae-14__vs__lightgbm-weather | 55.409623 | 7.978 | 0.0 | significant |
+| AU/SA1: lightgbm-weather__vs__seasonal-naive-168h | -38.577198 | -6.1365 | 0.0 | significant |
+| AU/SA1: lightgbm-weather__vs__ridge-weather | -29.600893 | -6.3428 | 0.0 | significant |
+| AU/SA1: lightgbm-weather__vs__chronos-bolt-zero-shot | -261.054726 | -21.2435 | 0.0 | significant |
+| AU/SA1: ensemble-inv-mae-14__vs__lightgbm-weather | 17.441106 | 5.3501 | 0.0 | significant |
+| AU/TAS1: lightgbm-weather__vs__seasonal-naive-168h | -16.364747 | -7.3303 | 0.0 | significant |
+| AU/TAS1: lightgbm-weather__vs__ridge-weather | 0.506862 | 0.263 | 0.792523 | NOT significant |
+| AU/TAS1: lightgbm-weather__vs__chronos-bolt-zero-shot | -90.455348 | -24.8726 | 0.0 | significant |
+| AU/TAS1: ensemble-inv-mae-14__vs__ridge-weather | -0.974867 | -0.7314 | 0.46454 | NOT significant |
+| AU/VIC1: lightgbm-weather__vs__seasonal-naive-168h | -112.839433 | -7.1895 | 0.0 | significant |
+| AU/VIC1: lightgbm-weather__vs__ridge-weather | 32.690612 | 2.6631 | 0.007742 | significant |
+| AU/VIC1: lightgbm-weather__vs__chronos-bolt-zero-shot | -771.349918 | -26.6763 | 0.0 | significant |
+| AU/VIC1: ensemble-inv-mae-14__vs__ridge-weather | 28.238873 | 3.2317 | 0.00123 | significant |
+| AU/NEM_TOTAL: lightgbm-weather__vs__seasonal-naive-168h | -16.355055 | -0.5292 | 0.596674 | NOT significant |
+| AU/NEM_TOTAL: lightgbm-weather__vs__ridge-weather | 57.137716 | 2.1015 | 0.035597 | significant |
+| AU/NEM_TOTAL: lightgbm-weather__vs__chronos-bolt-zero-shot | -3504.370074 | -32.7298 | 0.0 | significant |
+| AU/NEM_TOTAL: ensemble-inv-mae-14__vs__ridge-weather | 52.392274 | 2.1998 | 0.027819 | significant |
 
 Reading: mean_loss_diff > 0 => the first model named has HIGHER loss (worse). Pairs with NOT significant differences are honest non-conclusions, not ties to hide.
 
 ## Conformal intervals (rolling split-conformal, calib 14 anchors)
 
-- GB/GB/ensemble-inv-mae-14 nominal 80%: PICP 0.889, mean width 6639.1 MW, gap 0.0894
-- GB/GB/ensemble-inv-mae-14 nominal 90%: PICP 0.938, mean width 8415.0 MW, gap 0.0375
-- GB/GB/ensemble-inv-mae-14 nominal 95%: PICP 0.968, mean width 10086.1 MW, gap 0.0178
-- GB/GB/lightgbm-weather nominal 80%: PICP 0.908, mean width 7658.6 MW, gap 0.1082
-- GB/GB/lightgbm-weather nominal 90%: PICP 0.972, mean width 9676.6 MW, gap 0.0717
-- GB/GB/lightgbm-weather nominal 95%: PICP 0.991, mean width 11445.0 MW, gap 0.0406
-- IE/ALL/ensemble-inv-mae-14 nominal 80%: PICP 0.851, mean width 633.1 MW, gap 0.0511
-- IE/ALL/ensemble-inv-mae-14 nominal 90%: PICP 0.916, mean width 800.7 MW, gap 0.0163
-- IE/ALL/ensemble-inv-mae-14 nominal 95%: PICP 0.95, mean width 921.3 MW, gap 0.0003
-- IE/ALL/lightgbm-weather nominal 80%: PICP 0.844, mean width 581.5 MW, gap 0.0443
-- IE/ALL/lightgbm-weather nominal 90%: PICP 0.924, mean width 788.1 MW, gap 0.0237
-- IE/ALL/lightgbm-weather nominal 95%: PICP 0.961, mean width 973.2 MW, gap 0.0114
-- AU/NSW1/ensemble-inv-mae-14 nominal 80%: PICP 0.799, mean width 1634.6 MW, gap -0.0006
-- AU/NSW1/ensemble-inv-mae-14 nominal 90%: PICP 0.899, mean width 2239.3 MW, gap -0.0009
-- AU/NSW1/ensemble-inv-mae-14 nominal 95%: PICP 0.945, mean width 2723.7 MW, gap -0.0045
-- AU/NSW1/lightgbm-weather nominal 80%: PICP 0.792, mean width 1728.3 MW, gap -0.008
-- AU/NSW1/lightgbm-weather nominal 90%: PICP 0.897, mean width 2490.3 MW, gap -0.0033
-- AU/NSW1/lightgbm-weather nominal 95%: PICP 0.939, mean width 3151.1 MW, gap -0.0113
-- AU/QLD1/ensemble-inv-mae-14 nominal 80%: PICP 0.855, mean width 980.6 MW, gap 0.0551
-- AU/QLD1/ensemble-inv-mae-14 nominal 90%: PICP 0.92, mean width 1323.6 MW, gap 0.0204
-- AU/QLD1/ensemble-inv-mae-14 nominal 95%: PICP 0.955, mean width 1782.4 MW, gap 0.0048
-- AU/QLD1/lightgbm-weather nominal 80%: PICP 0.829, mean width 783.0 MW, gap 0.0294
-- AU/QLD1/lightgbm-weather nominal 90%: PICP 0.917, mean width 1222.0 MW, gap 0.0165
-- AU/QLD1/lightgbm-weather nominal 95%: PICP 0.959, mean width 1647.9 MW, gap 0.0091
-- AU/SA1/ensemble-inv-mae-14 nominal 80%: PICP 0.805, mean width 585.5 MW, gap 0.0054
-- AU/SA1/ensemble-inv-mae-14 nominal 90%: PICP 0.891, mean width 810.5 MW, gap -0.0095
-- AU/SA1/ensemble-inv-mae-14 nominal 95%: PICP 0.938, mean width 1041.6 MW, gap -0.0124
-- AU/SA1/lightgbm-weather nominal 80%: PICP 0.789, mean width 536.8 MW, gap -0.0105
-- AU/SA1/lightgbm-weather nominal 90%: PICP 0.878, mean width 776.4 MW, gap -0.0221
-- AU/SA1/lightgbm-weather nominal 95%: PICP 0.934, mean width 987.5 MW, gap -0.0164
-- AU/TAS1/ensemble-inv-mae-14 nominal 80%: PICP 0.789, mean width 221.7 MW, gap -0.0107
-- AU/TAS1/ensemble-inv-mae-14 nominal 90%: PICP 0.891, mean width 287.5 MW, gap -0.0093
-- AU/TAS1/ensemble-inv-mae-14 nominal 95%: PICP 0.941, mean width 347.3 MW, gap -0.0087
-- AU/TAS1/lightgbm-weather nominal 80%: PICP 0.809, mean width 250.9 MW, gap 0.0094
-- AU/TAS1/lightgbm-weather nominal 90%: PICP 0.899, mean width 310.9 MW, gap -0.0005
-- AU/TAS1/lightgbm-weather nominal 95%: PICP 0.942, mean width 369.6 MW, gap -0.0077
-- AU/VIC1/ensemble-inv-mae-14 nominal 80%: PICP 0.802, mean width 1471.3 MW, gap 0.0022
-- AU/VIC1/ensemble-inv-mae-14 nominal 90%: PICP 0.893, mean width 1885.3 MW, gap -0.007
-- AU/VIC1/ensemble-inv-mae-14 nominal 95%: PICP 0.939, mean width 2352.4 MW, gap -0.0108
-- AU/VIC1/lightgbm-weather nominal 80%: PICP 0.787, mean width 1552.1 MW, gap -0.0129
-- AU/VIC1/lightgbm-weather nominal 90%: PICP 0.884, mean width 2073.8 MW, gap -0.0158
-- AU/VIC1/lightgbm-weather nominal 95%: PICP 0.936, mean width 2525.0 MW, gap -0.0143
-- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 80%: PICP 0.816, mean width 3501.8 MW, gap 0.0162
-- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 90%: PICP 0.91, mean width 4775.1 MW, gap 0.0101
-- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 95%: PICP 0.955, mean width 6035.8 MW, gap 0.0045
-- AU/NEM_TOTAL/lightgbm-weather nominal 80%: PICP 0.793, mean width 3403.4 MW, gap -0.0073
-- AU/NEM_TOTAL/lightgbm-weather nominal 90%: PICP 0.894, mean width 4845.7 MW, gap -0.0063
-- AU/NEM_TOTAL/lightgbm-weather nominal 95%: PICP 0.938, mean width 5910.2 MW, gap -0.0116
+- GB/GB/ensemble-inv-mae-14 nominal 80%: PICP 0.844, mean width 5728.8 MW, gap 0.0437
+- GB/GB/ensemble-inv-mae-14 nominal 90%: PICP 0.935, mean width 7888.5 MW, gap 0.0345
+- GB/GB/ensemble-inv-mae-14 nominal 95%: PICP 0.982, mean width 9837.8 MW, gap 0.0316
+- GB/GB/lightgbm-weather nominal 80%: PICP 0.908, mean width 6910.1 MW, gap 0.1077
+- GB/GB/lightgbm-weather nominal 90%: PICP 0.966, mean width 8836.3 MW, gap 0.0663
+- GB/GB/lightgbm-weather nominal 95%: PICP 0.99, mean width 10581.4 MW, gap 0.0396
+- IE/ALL/ensemble-inv-mae-14 nominal 80%: PICP 0.854, mean width 623.8 MW, gap 0.0538
+- IE/ALL/ensemble-inv-mae-14 nominal 90%: PICP 0.918, mean width 795.3 MW, gap 0.0183
+- IE/ALL/ensemble-inv-mae-14 nominal 95%: PICP 0.954, mean width 921.5 MW, gap 0.0037
+- IE/ALL/lightgbm-weather nominal 80%: PICP 0.848, mean width 601.7 MW, gap 0.0482
+- IE/ALL/lightgbm-weather nominal 90%: PICP 0.93, mean width 811.1 MW, gap 0.03
+- IE/ALL/lightgbm-weather nominal 95%: PICP 0.969, mean width 971.3 MW, gap 0.0186
+- AU/NSW1/ensemble-inv-mae-14 nominal 80%: PICP 0.817, mean width 1616.2 MW, gap 0.0168
+- AU/NSW1/ensemble-inv-mae-14 nominal 90%: PICP 0.905, mean width 2184.3 MW, gap 0.0051
+- AU/NSW1/ensemble-inv-mae-14 nominal 95%: PICP 0.946, mean width 2684.9 MW, gap -0.0041
+- AU/NSW1/lightgbm-weather nominal 80%: PICP 0.802, mean width 1588.9 MW, gap 0.0023
+- AU/NSW1/lightgbm-weather nominal 90%: PICP 0.901, mean width 2184.0 MW, gap 0.0006
+- AU/NSW1/lightgbm-weather nominal 95%: PICP 0.944, mean width 2820.3 MW, gap -0.0057
+- AU/QLD1/ensemble-inv-mae-14 nominal 80%: PICP 0.852, mean width 980.3 MW, gap 0.052
+- AU/QLD1/ensemble-inv-mae-14 nominal 90%: PICP 0.921, mean width 1346.6 MW, gap 0.0206
+- AU/QLD1/ensemble-inv-mae-14 nominal 95%: PICP 0.955, mean width 1794.8 MW, gap 0.0047
+- AU/QLD1/lightgbm-weather nominal 80%: PICP 0.839, mean width 747.9 MW, gap 0.0395
+- AU/QLD1/lightgbm-weather nominal 90%: PICP 0.921, mean width 1136.9 MW, gap 0.0211
+- AU/QLD1/lightgbm-weather nominal 95%: PICP 0.959, mean width 1540.2 MW, gap 0.0088
+- AU/SA1/ensemble-inv-mae-14 nominal 80%: PICP 0.812, mean width 548.4 MW, gap 0.0118
+- AU/SA1/ensemble-inv-mae-14 nominal 90%: PICP 0.894, mean width 749.2 MW, gap -0.0064
+- AU/SA1/ensemble-inv-mae-14 nominal 95%: PICP 0.938, mean width 1002.0 MW, gap -0.0117
+- AU/SA1/lightgbm-weather nominal 80%: PICP 0.798, mean width 453.0 MW, gap -0.0019
+- AU/SA1/lightgbm-weather nominal 90%: PICP 0.89, mean width 669.9 MW, gap -0.01
+- AU/SA1/lightgbm-weather nominal 95%: PICP 0.939, mean width 901.7 MW, gap -0.0109
+- AU/TAS1/ensemble-inv-mae-14 nominal 80%: PICP 0.797, mean width 218.2 MW, gap -0.0032
+- AU/TAS1/ensemble-inv-mae-14 nominal 90%: PICP 0.892, mean width 287.2 MW, gap -0.0084
+- AU/TAS1/ensemble-inv-mae-14 nominal 95%: PICP 0.946, mean width 349.1 MW, gap -0.0039
+- AU/TAS1/lightgbm-weather nominal 80%: PICP 0.815, mean width 231.3 MW, gap 0.015
+- AU/TAS1/lightgbm-weather nominal 90%: PICP 0.904, mean width 296.7 MW, gap 0.0039
+- AU/TAS1/lightgbm-weather nominal 95%: PICP 0.944, mean width 356.2 MW, gap -0.0057
+- AU/VIC1/ensemble-inv-mae-14 nominal 80%: PICP 0.813, mean width 1406.3 MW, gap 0.0126
+- AU/VIC1/ensemble-inv-mae-14 nominal 90%: PICP 0.901, mean width 1829.2 MW, gap 0.001
+- AU/VIC1/ensemble-inv-mae-14 nominal 95%: PICP 0.946, mean width 2267.6 MW, gap -0.0044
+- AU/VIC1/lightgbm-weather nominal 80%: PICP 0.784, mean width 1407.0 MW, gap -0.0163
+- AU/VIC1/lightgbm-weather nominal 90%: PICP 0.888, mean width 1891.2 MW, gap -0.0116
+- AU/VIC1/lightgbm-weather nominal 95%: PICP 0.936, mean width 2302.8 MW, gap -0.0141
+- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 80%: PICP 0.831, mean width 3474.9 MW, gap 0.0311
+- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 90%: PICP 0.918, mean width 4740.3 MW, gap 0.0185
+- AU/NEM_TOTAL/ensemble-inv-mae-14 nominal 95%: PICP 0.966, mean width 5980.9 MW, gap 0.0156
+- AU/NEM_TOTAL/lightgbm-weather nominal 80%: PICP 0.803, mean width 3239.4 MW, gap 0.0026
+- AU/NEM_TOTAL/lightgbm-weather nominal 90%: PICP 0.898, mean width 4422.5 MW, gap -0.0017
+- AU/NEM_TOTAL/lightgbm-weather nominal 95%: PICP 0.945, mean width 5481.9 MW, gap -0.0049
 
 ### Undercovered slices (PICP below nominal minus 0.05)
 
-- AU/NSW1/lightgbm-weather cold_10pct/h0-24 @80%: PICP 0.746 (n=287)
-- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @80%: PICP 0.627 (n=287)
-- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @90%: PICP 0.794 (n=287)
-- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @95%: PICP 0.895 (n=287)
-- AU/QLD1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.667 (n=288)
-- AU/QLD1/lightgbm-weather bank_holiday/h0-24 @80%: PICP 0.641 (n=287)
-- AU/QLD1/lightgbm-weather bank_holiday/h0-24 @90%: PICP 0.76 (n=287)
-- AU/QLD1/lightgbm-weather bank_holiday/h0-24 @95%: PICP 0.85 (n=287)
-- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @80%: PICP 0.651 (n=258)
-- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @90%: PICP 0.76 (n=258)
-- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @95%: PICP 0.791 (n=258)
-- AU/SA1/ensemble-inv-mae-14 cold_10pct/h0-24 @80%: PICP 0.74 (n=661)
-- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.674 (n=576)
-- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.8 (n=576)
-- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.887 (n=576)
-- AU/SA1/lightgbm-weather cold_10pct/h0-24 @80%: PICP 0.744 (n=661)
-- AU/SA1/lightgbm-weather cold_10pct/h24-48 @80%: PICP 0.667 (n=576)
-- AU/SA1/lightgbm-weather cold_10pct/h24-48 @90%: PICP 0.766 (n=576)
-- AU/TAS1/ensemble-inv-mae-14 weekday/h24-48 @80%: PICP 0.733 (n=5784)
-- AU/TAS1/ensemble-inv-mae-14 weekday/h24-48 @90%: PICP 0.847 (n=5784)
-- AU/TAS1/ensemble-inv-mae-14 weekday/h24-48 @95%: PICP 0.896 (n=5784)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @80%: PICP 0.566 (n=574)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @90%: PICP 0.674 (n=574)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @95%: PICP 0.812 (n=574)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.483 (n=840)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.696 (n=840)
-- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.806 (n=840)
-- AU/TAS1/lightgbm-weather weekday/h24-48 @80%: PICP 0.728 (n=5784)
-- AU/TAS1/lightgbm-weather weekday/h24-48 @90%: PICP 0.834 (n=5784)
-- AU/TAS1/lightgbm-weather weekday/h24-48 @95%: PICP 0.887 (n=5784)
-- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @80%: PICP 0.529 (n=840)
-- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @90%: PICP 0.714 (n=840)
-- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @95%: PICP 0.824 (n=840)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @80%: PICP 0.735 (n=551)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @90%: PICP 0.82 (n=551)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @95%: PICP 0.895 (n=551)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.667 (n=576)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.748 (n=576)
-- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.861 (n=576)
-- AU/VIC1/lightgbm-weather weekday/h0-24 @80%: PICP 0.744 (n=6027)
-- AU/VIC1/lightgbm-weather bank_holiday/h24-48 @80%: PICP 0.663 (n=264)
+- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @80%: PICP 0.666 (n=287)
+- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @90%: PICP 0.801 (n=287)
+- AU/QLD1/ensemble-inv-mae-14 bank_holiday/h0-24 @95%: PICP 0.878 (n=287)
+- AU/QLD1/lightgbm-weather bank_holiday/h0-24 @80%: PICP 0.746 (n=287)
+- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @80%: PICP 0.636 (n=258)
+- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @90%: PICP 0.698 (n=258)
+- AU/SA1/ensemble-inv-mae-14 bank_holiday/h24-48 @95%: PICP 0.775 (n=258)
+- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.691 (n=576)
+- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.807 (n=576)
+- AU/SA1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.866 (n=576)
+- AU/SA1/lightgbm-weather bank_holiday/h24-48 @80%: PICP 0.671 (n=258)
+- AU/SA1/lightgbm-weather bank_holiday/h24-48 @90%: PICP 0.806 (n=258)
+- AU/SA1/lightgbm-weather bank_holiday/h24-48 @95%: PICP 0.891 (n=258)
+- AU/SA1/lightgbm-weather cold_10pct/h24-48 @80%: PICP 0.705 (n=576)
+- AU/SA1/lightgbm-weather cold_10pct/h24-48 @90%: PICP 0.795 (n=576)
+- AU/SA1/lightgbm-weather cold_10pct/h24-48 @95%: PICP 0.885 (n=576)
+- AU/TAS1/ensemble-inv-mae-14 weekday/h24-48 @80%: PICP 0.747 (n=5784)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @80%: PICP 0.463 (n=574)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @90%: PICP 0.646 (n=574)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h0-24 @95%: PICP 0.794 (n=574)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.448 (n=840)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.657 (n=840)
+- AU/TAS1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.787 (n=840)
+- AU/TAS1/lightgbm-weather weekday/h24-48 @90%: PICP 0.843 (n=5784)
+- AU/TAS1/lightgbm-weather weekday/h24-48 @95%: PICP 0.883 (n=5784)
+- AU/TAS1/lightgbm-weather cold_10pct/h0-24 @80%: PICP 0.587 (n=574)
+- AU/TAS1/lightgbm-weather cold_10pct/h0-24 @90%: PICP 0.779 (n=574)
+- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @80%: PICP 0.413 (n=840)
+- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @90%: PICP 0.577 (n=840)
+- AU/TAS1/lightgbm-weather cold_10pct/h24-48 @95%: PICP 0.71 (n=840)
+- AU/VIC1/ensemble-inv-mae-14 bank_holiday/h24-48 @80%: PICP 0.629 (n=264)
+- AU/VIC1/ensemble-inv-mae-14 bank_holiday/h24-48 @90%: PICP 0.689 (n=264)
+- AU/VIC1/ensemble-inv-mae-14 bank_holiday/h24-48 @95%: PICP 0.765 (n=264)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @80%: PICP 0.713 (n=551)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @90%: PICP 0.813 (n=551)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h0-24 @95%: PICP 0.869 (n=551)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @80%: PICP 0.668 (n=576)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @90%: PICP 0.767 (n=576)
+- AU/VIC1/ensemble-inv-mae-14 cold_10pct/h24-48 @95%: PICP 0.859 (n=576)
+- AU/VIC1/lightgbm-weather weekend/h0-24 @80%: PICP 0.733 (n=2273)
+- AU/VIC1/lightgbm-weather weekend/h0-24 @90%: PICP 0.834 (n=2273)
+- AU/VIC1/lightgbm-weather weekend/h0-24 @95%: PICP 0.862 (n=2273)
+- AU/VIC1/lightgbm-weather bank_holiday/h24-48 @80%: PICP 0.67 (n=264)
+- AU/VIC1/lightgbm-weather bank_holiday/h24-48 @90%: PICP 0.795 (n=264)
 
 ## Hypothesis status
 
