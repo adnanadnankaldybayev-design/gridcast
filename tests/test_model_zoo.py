@@ -5,6 +5,8 @@ injected via _PipelineHolder.set(). Ridge runs on the same offline seeded
 synthetic used for the GBM test.
 """
 
+import sys
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -41,7 +43,35 @@ def _history(n=3000, start="2026-01-01", step_min=30):
     return pd.Series(np.linspace(1000, 2000, n), index=idx)
 
 
-def test_chronos_fit_is_context_cut_only_and_predict_median(stub_chronos):
+class _FakeTensor(np.ndarray):
+    """numpy array with the torch-ish method the predictor uses."""
+
+    def unsqueeze(self, dim: int):
+        return np.expand_dims(self, dim)
+
+
+class _FakeNoGrad:
+    def __enter__(self):
+        return None
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakeTorch:
+    """Minimal torch stand-in so predict() works where the optional extra
+    `torch` is not installed (e.g. CI). Pipeline is stubbed anyway — only the
+    tensor/no_grad plumbing is exercised here."""
+
+    def tensor(self, data):
+        return np.asarray(data, dtype="float32").view(_FakeTensor)
+
+    def no_grad(self):
+        return _FakeNoGrad()
+
+
+def test_chronos_fit_is_context_cut_only_and_predict_median(stub_chronos, monkeypatch):
+    monkeypatch.setitem(sys.modules, "torch", _FakeTorch())
     model = ChronosModel("GB", "GB")
     hist = _history(n=MAX_CONTEXT + 500)
     model.fit(hist)
