@@ -25,6 +25,13 @@ See `SPEC.md` for the full plan.
 | Denmark | Energinet EDS `https://api.energidataservice.dk/dataset/ConsumptionDK3619IndustryHour` (national total = sum over DK36 industry codes; BRUTAL 429 limit honored with 'Try again in Ns' + offset paging; settlement lag ~18 days) | open, no key | 60 min |
 | Kazakhstan | KOREM `https://portal.korem.kz/api/ct/series?zoneId={1,2}&torgNameId=4` — no key, ~1 req/zone. **Semantics pinned: `demand` is centralized-trades *clearing* demand (~25-45 % of physical consumption), zonal объёмы — NOT physical grid load**; /api/energy/series kept as the physical cross-check. Local dt labels, offset switch UTC+6→UTC+5 on 2024-03-01 handled piecewise | open, no key; attribution: KOREM | 60 min |
 
+Definition caveat (BE): `eliagridload` is *offtake from the Elia transmission
+grid* — it excludes distribution-connected load and behind-the-meter solar, so
+it runs well below national consumption (series mean ≈ 5.8 GW) and on sunny
+spring middays (10–14 UTC) crashes to a few hundred MW (measured min 141 MW,
+2026-04-22). The duck-curve shape is verified physical, not a data bug —
+but models must expect values near the MAPE floor at solar noon.
+
 Cadence caveat (FR): the definitive éCO2mix export carries `consommation`
 only at **30-minute** granularity through 2026-06-30 (odd quarter-hours are
 null); the rolling dataset is full 15-min. July 2026 onward coverage is
