@@ -1,0 +1,41 @@
+{
+ "generated_at": "2026-09-27T14:40:07+00:00",
+ "units": {
+  "FR": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 4.1321,
+   "naive_value": 5.0274
+  },
+  "DE": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 4.6237,
+   "naive_value": 6.254
+  },
+  "BE": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "mape_pct",
+   "champion_value": 17.1709,
+   "naive_value": 25.1978
+  },
+  "DK": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 8.1652,
+   "naive_value": 8.1652
+  },
+  "KZ": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 13.1333,
+   "naive_value": 13.1333
+  },
+  "KZ_W": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 13.8906,
+   "naive_value": 13.8906
+  }
+ }
+}

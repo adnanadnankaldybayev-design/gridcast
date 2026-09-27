@@ -40,6 +40,7 @@ from gridcast.ingest.base import IngestError, fetch, make_session
 log = logging.getLogger(__name__)
 
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"  # NWP forecast, no key
 VARIABLES = ("temperature_2m", "relative_humidity_2m", "wind_speed_10m")
 
 POINTS: dict[str, tuple[tuple[float, float, float], ...]] = {
@@ -245,3 +246,32 @@ def unit_weather(
         out = out.add(p, fill_value=None)
     out.columns = [f"w_{c}" for c in out.columns]
     return out.sort_index()
+
+
+def unit_weather_forecast(unit: str, hours_ahead: int, session=None) -> pd.DataFrame:
+    """NWP forecast (hourly) for the next `hours_ahead` hours, weighted per
+    market point config — the honest future counterpart of the archive."""
+    from datetime import datetime
+
+    session = session or make_session()
+    frames = []
+    for lat, lon, weight in POINTS[unit]:
+        content = fetch(
+            session,
+            FORECAST_URL,
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "hourly": ",".join(VARIABLES),
+                "timezone": "UTC",
+                "forecast_days": (hours_ahead + 23) // 24 + 1,
+            },
+            timeout=120,
+        )
+        frames.append(parse_response(content.decode("utf-8")) * weight)
+    out = frames[0]
+    for f in frames[1:]:
+        out = out.add(f, fill_value=None)
+    out.columns = [f"w_{c}" for c in out.columns]
+    now = pd.Timestamp(datetime.now(), tz="UTC").floor("h")
+    return out[out.index >= now].sort_index()

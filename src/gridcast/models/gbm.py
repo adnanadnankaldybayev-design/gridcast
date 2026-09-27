@@ -42,6 +42,10 @@ LGB_PARAMS = {
     "reg_lambda": 1.0,
     "n_jobs": -1,
     "verbose": -1,
+    # reproducible boosting (bagging subsample uses a fixed seed);
+    # the leak-guard test depends on bit-identical refits
+    "random_state": 42,
+    "deterministic": True,   # ordered histograms — identica to next run
 }
 EARLY_STOP_ROUNDS = 50
 VALID_DAYS = 14  # tail of the fit window used only for early stopping
@@ -67,6 +71,20 @@ class GBMModel:
         if not self.use_weather:
             return None
         return unit_weather(self.unit, start.date(), end.date())
+
+    def _predict_weather(self, weather: pd.DataFrame | None, timestamps: pd.DatetimeIndex):
+        """Weather for a predict window: explicit frame (e.g. NWP forecast for
+        future horizons in the daily runner) wins; archive via unit_weather otherwise."""
+        if weather is not None or not self.use_weather:
+            return weather
+        return self._weather_for(timestamps[0], timestamps[-1])
+
+    def _predict_weather(self, weather: pd.DataFrame | None, timestamps: pd.DatetimeIndex):
+        """Weather for a predict window: explicit frame (e.g. NWP forecast for
+        future horizons in the daily runner) wins; archive via unit_weather otherwise."""
+        if weather is not None or not self.use_weather:
+            return weather
+        return self._weather_for(timestamps[0], timestamps[-1])
 
     def update_history(self, history: pd.Series) -> None:
         """Periodic-refit mode: swap the lag lookup window, keep the fitted trees."""
@@ -107,16 +125,18 @@ class GBMModel:
             int((X.index <= split).sum()),
         )
 
-    def predict(self, timestamps: pd.DatetimeIndex) -> pd.Series:
+    def predict(
+        self, timestamps: pd.DatetimeIndex, weather: pd.DataFrame | None = None
+    ) -> pd.Series:
         if self._reg is None:
             raise RuntimeError("GBMModel: predict before fit")
-        weather = self._weather_for(timestamps[0], timestamps[-1])
+        w = self._predict_weather(weather, timestamps)
         X = build_features(
             timestamps,
             self.market,
             self.unit,
             self._history,
-            weather,
+            w,
             use_weather=self.use_weather,
             include_short_lags=self.short_lags,
         )

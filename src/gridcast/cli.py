@@ -234,6 +234,37 @@ def run_compare(argv: list[str]) -> int:
     return 0
 
 
+def run_forecast(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="gridcast forecast")
+    parser.add_argument("--unit", nargs="+", help="limit units (e.g. GB FR KZ)")
+    parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
+    parser.add_argument("--site-dir", default=str(REPO_ROOT / "site" / "data"))
+    parser.add_argument("--snapshots-dir", default=str(REPO_ROOT / "data" / "forecasts"))
+    args = parser.parse_args(argv)
+
+    from gridcast.publish.forecast import MARKET_UNITS, run_forecast
+
+    wanted = set(args.unit or [])
+    units = [
+        (m, u)
+        for m, us in MARKET_UNITS.items()
+        for u in us
+        if not wanted or u in wanted
+    ]
+    latest = run_forecast(
+        units,
+        data_dir=Path(args.data_dir),
+        site_dir=Path(args.site_dir),
+        snapshots_dir=Path(args.snapshots_dir),
+    )
+    print(
+        f"issued {len(latest['units'])} unit forecasts -> {args.site_dir}/latest_forecasts.json"
+    )
+    if latest["degraded"]:
+        print(f"degraded: {latest['degraded']}", file=sys.stderr)
+    return 0
+
+
 def run_analyze(argv: list[str]) -> int:
     from gridcast.eval.analyze import run_analysis
     from gridcast.eval.backtest import finish_report
@@ -301,6 +332,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_compare(argv[1:])
     if argv and argv[0] == "analyze":
         return run_analyze(argv[1:])
+    if argv and argv[0] == "forecast":
+        return run_forecast(argv[1:])
     print(__doc__)
     return 0
 

@@ -60,10 +60,13 @@ class RidgeModel:
         self._feature_cols = list(X.columns)
         log.info("Ridge %s/%s fitted on %d rows", self.market, self.unit, len(X))
 
-    def predict(self, timestamps: pd.DatetimeIndex) -> pd.Series:
+    def predict(
+        self, timestamps: pd.DatetimeIndex, weather: pd.DataFrame | None = None
+    ) -> pd.Series:
         if self._model is None:
             raise RuntimeError("RidgeModel: predict before fit")
-        weather = self._weather_for(timestamps[0], timestamps[-1])
+        if weather is None:
+            weather = self._weather_for(timestamps[0], timestamps[-1])
         X = build_features(
             timestamps,
             self.market,

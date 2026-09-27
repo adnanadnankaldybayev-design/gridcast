@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridCast — open multi-market demand forecast, updated daily</title>
+<meta name="description" content="Daily electricity demand forecasts for GB, Ireland, Australia, France, Germany, Belgium, Denmark and Kazakhstan clearing zones — models, intervals, honest benchmarks, everything public and reproducible.">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  :root { --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8b949e;
+          --good: #3fb950; --bad: #f85149; --accent: #58a6ff; --warn: #d29922; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); margin: 0;
+         font: 15px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 20px 16px 12px; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.65rem; margin: 0 0 4px; }
+  .live { color: var(--good); font-weight: 600; }
+  .sub { color: var(--muted); font-size: .95rem; }
+  .banner { max-width: 1100px; margin: 14px auto 0; padding: 10px 14px; border-radius: 8px;
+            border: 1px solid #30363d; background: linear-gradient(180deg, #0f1620, #0d1117); }
+  .banner.degraded { border-color: var(--warn); }
+  main, footer { max-width: 1100px; margin: 0 auto; padding: 8px 16px 24px; }
+  .picker { margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .picker button { background: var(--panel); color: var(--fg); border: 1px solid #30363d;
+                   border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: .95rem; }
+  .picker button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
+                   background: #12233a; }
+  .card { background: var(--panel); border: 1px solid #30363d; border-radius: 10px;
+          padding: 14px 16px; margin: 12px 0; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+  .metric-sm { background: #0f1620; border: 1px solid #30363d; border-radius: 8px; padding: 8px 10px; }
+  .metric-sm .k { color: var(--muted); font-size: .78rem; }
+  .metric-sm .v { font-size: 1.06rem; font-weight: 600; }
+  .metric-sm .v.up { color: var(--good); } .metric-sm .v.down { color: var(--bad); }
+  #chart { min-height: 460px; }
+  .note { color: var(--muted); font-size: .85rem; }
+  a { color: var(--accent); }
+  table { border-collapse: collapse; margin: 6px 0; font-size: .92rem; }
+  th, td { padding: 4px 10px; text-align: left; }
+  th { color: var(--muted); font-weight: 500; }
+  caption { text-align: left; color: var(--muted); font-style: italic; margin: 6px 0; }
+  .legend-inline span { margin-right: 14px; font-size: .85rem; }
+  details .src-list { color: var(--muted); font-size: .88rem; }
+  footer { color: var(--muted); border-top: 1px solid #30363d; margin-top: 8px; font-size: .88rem; }
+  .kbd { background: #0f1620; border: 1px solid #30363d; border-radius: 5px; padding: 1px 6px; font-size: .85rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>GridCast <span class="live" id="live-dot">●</span></h1>
+  <div class="sub">Open multi-market electricity demand forecasting with a live, self-updating scoreboard.
+  <span id="headline">loading…</span></div>
+</header>
+<div class="banner" id="banner" role="status">Loading latest forecasts…</div>
+<main>
+  <section class="card" aria-describedby="figure-caption">
+    <div class="picker" id="picker" role="group" aria-label="Select market"></div>
+    <div id="chart" role="img" aria-label="Line chart of recent actual demand, latest forecast with 80 and 90 percent intervals, and yesterday's forecast-vs-actual overlay"></div>
+    <p id="figure-caption" class="note">Actual demand is published with market-specific lag (GB ~21 days, DK ~18 days), so the "#" tail ends before today by design — that is honestly the freshest data the operator has.</p>
+  </section>
+  <section class="card">
+    <h2 style="margin-top:0">Rolling-window accuracy (latest benchmark run)</h2>
+    <div class="metrics" id="metrics"></div>
+    <p class="note">Primary metric: MAPE for GB/IE/European markets (% of demand), sMAPE for Australian-NEM units where demand can dip negative at solar noon. Computed on rolling-origin evaluations (publication-lag cutoffs, no leakage).</p>
+  </section>
+  <section class="card">
+    <h2 style="margin-top:0">How it works</h2>
+    <details open>
+      <summary class="src-list">Data sources &amp; methodology (click to collapse)</summary>
+      <p class="src-list">Demand: <b>NESO</b> (Great Britain), <b>EirGrid</b> (Ireland All-Island), <b>AEMO</b> (Australia NEM regions), <b>RTE</b> (France), <b>SMARD</b> (Germany), <b>Elia</b> (Belgium), <b>Energinet</b> (Denmark), <b>KOREM</b> (Kazakhstan zones — see caveat). Weather: <b>Open-Meteo</b> archive + NWP forecast. Holidays: <code>holidays</code> package.</p>
+      <p>Models: seasonal-naive baseline, ridge (honest linear floor), LightGBM (calendar + weather + publication-safe lags), zero-shot Chronos-Bolt-mini, and an inverse-MAE ensemble. Champions are picked per market by the leak-free rolling-origin benchmark and retrained daily.</p>
+      <p>Intervals: rolling split-conformal (14-anchor calibration, 80/90% nominal). Coverage and its failures are measured per slice in <a href="https://github.com/adnanadnankaldybayev-design/gridcast/blob/main/reports/BENCHMARK.md">BENCHMARK.md</a>.</p>
+      <p><b>Honest limitations:</b> KZ is "<i>centralized-trades clearing demand</i>" of KOREM (~25-45% of physical consumption) — its magnitude and dynamics reflect trade, not grid load as such. GB actuals publish ~21 days late. DK industry-settlement data ~18 days late. Forecast weather = NWP is not perfect; ablation shows where it pays off. Fine-cadence zero-shot models degrade over long AR horizons.</p>
+      <p>Everything is public: <a href="https://github.com/adnanadnankaldybayev-design/gridcast">code (MIT)</a> · ingest adapters verified against live APIs · raw snapshots retained · no keys anywhere.</p>
+    </details>
+  </section>
+</main>
+<footer>
+  <p>Built by a high-schooler from Almaty · daily CI on GitHub Actions · charts with Plotly.js ·
+  <span class="kbd" id="gen">last generated: …</span></p>
+</footer>
+<script src="js/app.js"></script>
+</body>
+</html>

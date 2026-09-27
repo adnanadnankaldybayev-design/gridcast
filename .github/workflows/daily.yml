@@ -1,0 +1,90 @@
+name: daily-forecast
+
+on:
+  schedule:
+    - cron: "17 2 * * *"  # 02:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-forecast
+  cancel-in-progress: false
+
+jobs:
+  ingest-forecast-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # NOTE: no [chronos] extras here — the daily runner ships GBM/ridge/
+      # naive/ensemble only (documented in publish/forecast.py). Zero-shot
+      # inference stays in the heavier weekly analysis jobs instead.
+      - name: Install package
+        run: pip install -e .
+
+      - name: Ingest all markets (first try)
+        run: python -m gridcast.ingest --all 2>&1 | tee ingest.log
+        continue-on-error: true
+
+      - name: Ingest retry (survives transient rate limits)
+        if: failure()
+        run: |
+          sleep 180
+          python -m gridcast.ingest --all 2>&1 | tee -a ingest.log
+
+      - name: Forecast for all champions
+        run: python -m gridcast.cli forecast 2>&1 | tee forecast.log
+
+      - name: Healthcheck — every unit must have updated
+        run: |
+          python - << 'EOF'
+          import json
+          from datetime import UTC, datetime
+
+          latest = json.load(open("site/data/latest_forecasts.json"))
+          degraded = latest.get("degraded") or []
+          stale = []
+          now = datetime.now(UTC)
+          for unit, snap in latest.get("units", {}).items():
+              through = datetime.fromisoformat(snap["data_through"].replace("Z", "+00:00"))
+              age_h = (now - through).total_seconds() / 3600
+              # operator publication lags differ: GB 21d, DK 18d — 6x slack
+              limit_h = 6 * 24
+              if age_h > limit_h:
+                  stale.append((unit, round(age_h, 1)))
+          if degraded or stale:
+              print("HEALTHCHECK FAIL:", "degraded:", degraded, "stale:", stale)
+              raise SystemExit(1)
+          print(f"HEALTHCHECK OK: {len(latest['units'])} units, issue {latest['issue']}")
+          EOF
+
+      - name: Commit dashboard data back to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add site/data/
+          if git diff --cached --quiet; then
+            echo "no data changes"
+          else
+            git commit -m "chore(forecast): daily dashboard data update [bot]"
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          url: https://adnanadnankaldybayev-design.github.io/gridcast/
