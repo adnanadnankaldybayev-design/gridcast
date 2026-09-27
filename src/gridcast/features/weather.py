@@ -57,6 +57,25 @@ POINTS: dict[str, tuple[tuple[float, float, float], ...]] = {
         (-34.9285, 138.6007, 0.08),
         (-42.8821, 147.3272, 0.02),
     ),
+    "FR": (
+        (48.8566, 2.3522, 0.60),  # Paris
+        (45.7640, 4.8357, 0.20),  # Lyon
+        (43.2965, 5.3698, 0.20),  # Marseille
+    ),
+    "DE": (
+        (52.5200, 13.4050, 0.30),  # Berlin
+        (50.9375, 6.9603, 0.30),  # Cologne (NRW, demand-heavy)
+        (48.1351, 11.5820, 0.25),  # Munich
+        (53.5511, 9.9937, 0.15),  # Hamburg
+    ),
+    "BE": (
+        (50.8503, 4.3517, 0.60),  # Brussels
+        (51.2194, 4.4025, 0.40),  # Antwerp (petrochemical load)
+    ),
+    "DK": (
+        (55.6761, 12.5683, 0.60),  # Copenhagen
+        (56.1629, 10.2039, 0.40),  # Aarhus
+    ),
 }
 
 WEATHER_CACHE_DIR = RAW_DIR / "weather"

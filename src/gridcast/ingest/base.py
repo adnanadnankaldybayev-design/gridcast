@@ -29,7 +29,8 @@ def make_session() -> requests.Session:
     retry = Retry(
         total=6,
         backoff_factor=2.0,  # 2s, 4s, 8s, ...
-        status_forcelist=(429, 500, 502, 503, 504),
+        # 403 too: ODS/RTE answers 403 under rate pressure with Retry-After
+        status_forcelist=(403, 429, 500, 502, 503, 504),
         allowed_methods=frozenset({"GET"}),
         respect_retry_after_header=True,
         raise_on_status=False,

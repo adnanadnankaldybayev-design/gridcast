@@ -20,7 +20,15 @@ from gridcast.features.calendar import calendar_frame
 #                     lag must be >= 504h+48h; we use 672h (4w) and 840h (5w).
 # Getting this wrong is silently catastrophic (verified 2026-09-26: with 168h
 # lags the GB GBM predicted March levels in August, MAPE 24-25%).
-MARKET_LAG_HOURS = {"GB": (672, 840), "IE": (168, 336), "AU": (168, 336)}
+MARKET_LAG_HOURS = {
+    "GB": (672, 840),
+    "IE": (168, 336),
+    "AU": (168, 336),
+    "FR": (168, 336),
+    "DE": (168, 336),
+    "BE": (168, 336),
+    "DK": (168, 336),
+}
 SHORT_LAG_HOURS = (24, 48)
 # Short lags stay opt-in for future recursive strategies only.
 WEATHER_COLS = ("w_temperature_2m", "w_relative_humidity_2m", "w_wind_speed_10m")

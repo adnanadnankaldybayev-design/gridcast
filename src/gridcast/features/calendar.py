@@ -20,6 +20,10 @@ UNIT_TZ = {
     "TAS1": "Australia/Hobart",
     "VIC1": "Australia/Melbourne",
     "NEM_TOTAL": "Australia/Sydney",
+    "FR": "Europe/Paris",
+    "DE": "Europe/Berlin",
+    "BE": "Europe/Brussels",
+    "DK": "Europe/Copenhagen",
 }
 
 _HOLIDAY_SPEC = {
@@ -32,6 +36,10 @@ _HOLIDAY_SPEC = {
     "TAS1": ("AU", "TAS"),
     "VIC1": ("AU", "VIC"),
     "NEM_TOTAL": ("AU", "NSW"),
+    "FR": ("FR", None),
+    "DE": ("DE", None),
+    "BE": ("BE", None),
+    "DK": ("DK", None),
 }
 
 _cache: dict[str, set] = {}

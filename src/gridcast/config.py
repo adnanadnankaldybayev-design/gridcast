@@ -9,6 +9,6 @@ RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 
 # Native step of each market's demand series, in minutes.
-CADENCE_MINUTES = {"GB": 30, "IE": 15, "AU": 5}
+CADENCE_MINUTES = {"GB": 30, "IE": 15, "AU": 5, "FR": 15, "DE": 15, "BE": 15, "DK": 60}
 
 MARKETS = tuple(CADENCE_MINUTES)

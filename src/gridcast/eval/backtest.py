@@ -33,11 +33,28 @@ log = logging.getLogger(__name__)
 # How old the freshest usable actual is at issue time (days).
 # GB: NESO's own 21-day arrears. IE/AU dashboards are near-real-time; 6 h
 # keeps the intraday current day safely out of fit history.
-PUB_LAG_DAYS = {"GB": 21.0, "IE": 0.25, "AU": 0.25}
+# FR/DE/BE publish near-real-time; DK industry-settlement data lags ~18 days.
+PUB_LAG_DAYS = {
+    "GB": 21.0,
+    "IE": 0.25,
+    "AU": 0.25,
+    "FR": 1.0,
+    "DE": 1.0,
+    "BE": 0.25,
+    "DK": 18.0,
+}
 
 # Ratio metric of record per market. SA1 demand crosses zero at solar noon,
 # so any *APE is meaningless there; MAE and sMAPE are the honest ones.
-PRIMARY_METRIC = {"AU": "smape_pct", "GB": "mape_pct", "IE": "mape_pct"}
+PRIMARY_METRIC = {
+    "AU": "smape_pct",
+    "GB": "mape_pct",
+    "IE": "mape_pct",
+    "FR": "mape_pct",
+    "DE": "mape_pct",
+    "BE": "mape_pct",
+    "DK": "mape_pct",
+}
 
 NEM_REGIONS = ("NSW1", "QLD1", "SA1", "TAS1", "VIC1")
 
