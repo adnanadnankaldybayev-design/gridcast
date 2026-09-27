@@ -1,0 +1,104 @@
+"""Regression tests for the E9 G3 review fixes:
+
+1. daily healthcheck staleness limits are PER-MARKET (GB ~21d / DK ~18d
+   publication lags are the norm, not a stall) — the flat 6-day limit in the
+   first daily.yml would have failed every run and blocked every deploy.
+2. unit_weather_forecast must read the true UTC clock: a naive local
+   datetime labeled as UTC drops the first hours of the NWP forecast on any
+   non-UTC host.
+"""
+
+import json
+from datetime import UTC, datetime
+
+import pandas as pd
+
+import gridcast.features.weather as weather_mod
+from gridcast.publish.healthcheck import find_stale
+from gridcast.publish.healthcheck import main as health_main
+
+
+def _snap(market, unit, age_days, issue="2026-09-27T12:00:00+00:00"):
+    through = pd.Timestamp(issue) - pd.Timedelta(days=age_days)
+    return {
+        "issue": issue,
+        "units": {
+            unit: {
+                "market": market,
+                "unit": unit,
+                "data_through": through.isoformat(),
+            }
+        },
+        "degraded": [],
+    }
+
+
+NOW = datetime(2026, 9, 27, 12, 0, tzinfo=UTC)
+
+
+def test_stale_limits_are_per_market():
+    # GB published tail 22 days old is NORMAL (21d lag) -> not stale
+    assert find_stale(_snap("GB", "GB", 22), NOW) == []
+    # DK 19.5 days old is normal (18d lag) -> not stale
+    assert find_stale(_snap("DK", "DK", 19.5), NOW) == []
+    # ...but a genuinely stalled GB (24d = lag 21d + 48h slack + margin) fails
+    assert find_stale(_snap("GB", "GB", 24), NOW) != []
+    # IE near-real-time: 3 days old IS a stall (limit 6h + 48h)
+    assert find_stale(_snap("IE", "ALL", 3), NOW) != []
+    # IE fresh passes
+    assert find_stale(_snap("IE", "ALL", 1), NOW) == []
+
+
+def test_health_main_exit_codes(tmp_path, capsys):
+    ok = tmp_path / "ok.json"
+    ok.write_text(json.dumps(_snap("GB", "GB", 22)))
+    assert health_main([str(ok)]) == 0
+
+    bad = tmp_path / "bad.json"
+    payload = _snap("IE", "ALL", 5)
+    payload["degraded"] = [{"unit": "FR", "error": "boom"}]
+    bad.write_text(json.dumps(payload))
+    assert health_main([str(bad)]) == 1
+    assert "HEALTHCHECK FAIL" in capsys.readouterr().out
+
+
+class _FakeSession:
+    def __init__(self, payload: bytes):
+        self._payload = payload
+
+    def get(self, url, **kwargs):
+        import types
+
+        return types.SimpleNamespace(status_code=200, content=self._payload, url=url)
+
+
+def _forecast_payload():
+    hours = pd.date_range("2026-09-27", periods=72, freq="h")  # naive strings
+    return json.dumps(
+        {
+            "hourly": {
+                "time": [t.strftime("%Y-%m-%dT%H:%M") for t in hours],
+                "temperature_2m": [10.0] * 72,
+                "relative_humidity_2m": [50.0] * 72,
+                "wind_speed_10m": [5.0] * 72,
+            }
+        }
+    ).encode()
+
+
+def test_forecast_filter_uses_true_utc_not_local_wallclock(monkeypatch):
+    """Simulate a UTC+5 host: naive local wall time 15:34 while true UTC is
+    10:34. The old code labeled 15:34 as UTC and dropped 5 forecast hours."""
+
+    class FakeDatetime:
+        @staticmethod
+        def now(tz=None):
+            if tz is None:  # the buggy call path
+                return datetime(2026, 9, 27, 15, 34)  # local wall clock (UTC+5)
+            return datetime(2026, 9, 27, 10, 34, tzinfo=UTC)  # true UTC
+
+    monkeypatch.setattr(weather_mod, "datetime", FakeDatetime)
+    session = _FakeSession(_forecast_payload())
+    out = weather_mod.unit_weather_forecast("ALL", 48, session=session)
+    assert out.index[0] == pd.Timestamp("2026-09-27 10:00", tz="UTC")
+    assert str(out.index.tz) == "UTC"

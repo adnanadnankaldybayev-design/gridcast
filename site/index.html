@@ -61,7 +61,7 @@
   <section class="card">
     <h2 style="margin-top:0">Rolling-window accuracy (latest benchmark run)</h2>
     <div class="metrics" id="metrics"></div>
-    <p class="note">Primary metric: MAPE for GB/IE/European markets (% of demand), sMAPE for Australian-NEM units where demand can dip negative at solar noon. Computed on rolling-origin evaluations (publication-lag cutoffs, no leakage).</p>
+    <p class="note">Primary metric: MAPE for GB/IE/European markets (% of demand), sMAPE for Australian-NEM units where demand can dip negative at solar noon. BE reads high in MAPE by construction: the Elia series is transmission-grid offtake that dips to a few hundred MW at sunny noon, so small absolute errors loom large in % — judge BE by the naive-relative row. Computed on rolling-origin evaluations (publication-lag cutoffs, no leakage).</p>
   </section>
   <section class="card">
     <h2 style="margin-top:0">How it works</h2>

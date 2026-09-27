@@ -79,13 +79,6 @@ class GBMModel:
             return weather
         return self._weather_for(timestamps[0], timestamps[-1])
 
-    def _predict_weather(self, weather: pd.DataFrame | None, timestamps: pd.DatetimeIndex):
-        """Weather for a predict window: explicit frame (e.g. NWP forecast for
-        future horizons in the daily runner) wins; archive via unit_weather otherwise."""
-        if weather is not None or not self.use_weather:
-            return weather
-        return self._weather_for(timestamps[0], timestamps[-1])
-
     def update_history(self, history: pd.Series) -> None:
         """Periodic-refit mode: swap the lag lookup window, keep the fitted trees."""
         self._history = history.dropna()

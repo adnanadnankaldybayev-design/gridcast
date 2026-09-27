@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -251,8 +251,6 @@ def unit_weather(
 def unit_weather_forecast(unit: str, hours_ahead: int, session=None) -> pd.DataFrame:
     """NWP forecast (hourly) for the next `hours_ahead` hours, weighted per
     market point config — the honest future counterpart of the archive."""
-    from datetime import datetime
-
     session = session or make_session()
     frames = []
     for lat, lon, weight in POINTS[unit]:
@@ -273,5 +271,7 @@ def unit_weather_forecast(unit: str, hours_ahead: int, session=None) -> pd.DataF
     for f in frames[1:]:
         out = out.add(f, fill_value=None)
     out.columns = [f"w_{c}" for c in out.columns]
-    now = pd.Timestamp(datetime.now(), tz="UTC").floor("h")
+    # true UTC clock: naive local time mislabeled as UTC silently drops the
+    # first hours of the forecast on any non-UTC host
+    now = pd.Timestamp(datetime.now(UTC)).floor("h")
     return out[out.index >= now].sort_index()

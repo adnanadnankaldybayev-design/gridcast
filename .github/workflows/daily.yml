@@ -45,27 +45,9 @@ jobs:
         run: python -m gridcast.cli forecast 2>&1 | tee forecast.log
 
       - name: Healthcheck — every unit must have updated
-        run: |
-          python - << 'EOF'
-          import json
-          from datetime import UTC, datetime
-
-          latest = json.load(open("site/data/latest_forecasts.json"))
-          degraded = latest.get("degraded") or []
-          stale = []
-          now = datetime.now(UTC)
-          for unit, snap in latest.get("units", {}).items():
-              through = datetime.fromisoformat(snap["data_through"].replace("Z", "+00:00"))
-              age_h = (now - through).total_seconds() / 3600
-              # operator publication lags differ: GB 21d, DK 18d — 6x slack
-              limit_h = 6 * 24
-              if age_h > limit_h:
-                  stale.append((unit, round(age_h, 1)))
-          if degraded or stale:
-              print("HEALTHCHECK FAIL:", "degraded:", degraded, "stale:", stale)
-              raise SystemExit(1)
-          print(f"HEALTHCHECK OK: {len(latest['units'])} units, issue {latest['issue']}")
-          EOF
+        # per-market staleness limits live in publish/healthcheck.py (GB ~21d
+        # and DK ~18d publication lags are normal, not a stall)
+        run: python -m gridcast.publish.healthcheck site/data/latest_forecasts.json
 
       - name: Commit dashboard data back to main
         run: |
