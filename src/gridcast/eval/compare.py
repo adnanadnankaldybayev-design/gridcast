@@ -233,9 +233,13 @@ def render_markdown(comparison: dict, period: tuple[str, str], details: dict) ->
     losses = []
     for key, data in comparison.items():
         lines.append(f"### {key}")
+        small_n = []
         rows = []
         for slice_name, slice_data in data["slices"].items():
-            row = {"slice": slice_name, "n_days": slice_data.get("n_days")}
+            n_days = slice_data.get("n_days")
+            if n_days is not None and n_days < 5:
+                small_n.append(f"{key}/{slice_name} (n={n_days})")
+            row = {"slice": slice_name, "n_days": n_days}
             for model, agg in data["models"].items():
                 cell = slice_data.get(model)
                 row[model] = None if cell is None else cell[agg["primary_metric"]]
@@ -248,6 +252,8 @@ def render_markdown(comparison: dict, period: tuple[str, str], details: dict) ->
                 present = r.get(gbm_col) is not None and r.get(naive_col) is not None
                 if present and r[gbm_col] > r[naive_col]:
                     losses.append(f"{key}/{r['slice']}")
+        if small_n:
+            lines.append(f"  (small-n slices, anecdotal: {', '.join(small_n)})")
         lines.append("")
     lines += [
         "### Where the weather-GBM LOSES to naive (honest account)",

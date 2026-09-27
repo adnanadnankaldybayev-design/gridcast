@@ -125,7 +125,11 @@ def run_backtest(argv: list[str]) -> int:
     start = pd.Timestamp(args.start, tz="UTC")
     end = pd.Timestamp(args.end, tz="UTC") + pd.Timedelta(days=1)
 
-    report, _frames = run_backtest(markets, start, end, cfg, Path(args.data_dir))
+    try:
+        report, _frames = run_backtest(markets, start, end, cfg, Path(args.data_dir))
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = Path(args.out_dir) / f"backtest_{cfg.model}_{stamp}.json"
     report = finish_report(report, out_path)
@@ -185,15 +189,19 @@ def run_compare(argv: list[str]) -> int:
     start = pd.Timestamp(args.start, tz="UTC")
     end = pd.Timestamp(args.end, tz="UTC") + pd.Timedelta(days=1)
 
-    comparison = run_comparison(
-        markets,
-        start,
-        end,
-        models=tuple(args.models),
-        refit_every_anchors=args.refit,
-        chronos_stride=args.chronos_stride,
-        data_dir=Path(args.data_dir),
-    )
+    try:
+        comparison = run_comparison(
+            markets,
+            start,
+            end,
+            models=tuple(args.models),
+            refit_every_anchors=args.refit,
+            chronos_stride=args.chronos_stride,
+            data_dir=Path(args.data_dir),
+        )
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_json = Path(args.out_dir) / f"model_zoo_{stamp}.json"
     report = {
@@ -226,6 +234,57 @@ def run_compare(argv: list[str]) -> int:
     return 0
 
 
+def run_analyze(argv: list[str]) -> int:
+    from gridcast.eval.analyze import run_analysis
+    from gridcast.eval.backtest import finish_report
+    from gridcast.eval.benchmark import render_benchmark
+
+    parser = argparse.ArgumentParser(prog="gridcast analyze")
+    parser.add_argument("--market", nargs="+", choices=MARKETS, help="default: all")
+    parser.add_argument("--start", default="2026-03-01", help="anchor window start")
+    parser.add_argument("--end", default=date.today().isoformat(), help="anchor window end")
+    parser.add_argument("--anchors-stride", type=int, default=6)
+    parser.add_argument("--refit", type=int, default=7)
+    parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
+    parser.add_argument("--out-dir", default=str(REPO_ROOT / "reports"))
+    parser.add_argument(
+        "--allow-dirty",
+        action="store_true",
+        help="write the report even from a dirty tree",
+    )
+    args = parser.parse_args(argv)
+    _tree_guard(args.allow_dirty)
+
+    markets = tuple(args.market) if args.market else MARKETS
+    start = pd.Timestamp(args.start, tz="UTC")
+    end = pd.Timestamp(args.end, tz="UTC") + pd.Timedelta(days=1)
+
+    report = run_analysis(
+        markets,
+        start,
+        end,
+        anchors_stride=args.anchors_stride,
+        refit_every_anchors=args.refit,
+        data_dir=Path(args.data_dir),
+    )
+    out_dir = Path(args.out_dir)
+    finish_report(report, out_dir / "latest_benchmark.json")
+    md = render_benchmark(report)
+    (out_dir / "latest_benchmark.md").write_text(md, encoding="utf-8")
+    (out_dir / "BENCHMARK.md").write_text(md, encoding="utf-8")
+    for key, res in report["results"].items():
+        primary = res["primary_metric"]
+        log.info(
+            "%s champion=%s (%s=%s)",
+            key,
+            res["champion_model"],
+            primary,
+            res["metrics"][res["champion_model"]]["overall"][primary],
+        )
+    print(f"json: {out_dir / 'latest_benchmark.json'}\ncard: {out_dir / 'BENCHMARK.md'}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     argv = list(sys.argv[1:] if argv is None else argv)
@@ -235,6 +294,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_backtest(argv[1:])
     if argv and argv[0] == "compare":
         return run_compare(argv[1:])
+    if argv and argv[0] == "analyze":
+        return run_analyze(argv[1:])
     print(__doc__)
     return 0
 

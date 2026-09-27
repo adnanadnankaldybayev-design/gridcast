@@ -16,6 +16,14 @@ data/processed/**
 # Secrets / env
 .env
 
+# Reports: timestamped artifacts are reproducible from code at their stamped
+# SHA — never commit them; rolling latest_* snapshots and the benchmark card
+# ARE committed
+reports/*
+!reports/latest_*
+!reports/BENCHMARK.md
+!reports/.gitkeep
+
 # OS / editors
 .DS_Store
 Thumbs.db

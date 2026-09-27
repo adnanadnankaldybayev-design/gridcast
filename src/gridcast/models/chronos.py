@@ -51,9 +51,17 @@ class _PipelineHolder:
 
 @dataclass
 class ChronosModel:
+    """Zero-shot Chronos-Bolt-mini wrapper.
+
+    Context policy (fixed, documented): the last MAX_CONTEXT=2048 published
+    points — bolt's own context window. A tunable `context_hours` field was
+    removed in E5 (dead config): shortening context below the model's window
+    showed no benefit in the E4 explorations and adding it silently broke
+    tests that pinned the bound.
+    """
+
     market: str
     unit: str
-    context_hours: int = 24 * 21  # 3 weeks of context is plenty for weekly season
     model_id: str = MODEL_ID
 
     def __post_init__(self):
