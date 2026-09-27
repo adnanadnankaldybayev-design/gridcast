@@ -17,13 +17,26 @@ concurrency:
 jobs:
   ingest-forecast-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+
+      # Warm-start data caches: the ingest is incremental (tail-only), the
+      # weather cache is per-point parquet — together these turn a ~90min
+      # cold run into a ~15-40min daily run. Cache is saved at job end.
+      - name: Restore processed + weather caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/processed
+            data/raw/weather
+          key: gridcast-data-${{ github.run_id }}
+          restore-keys: |
+            gridcast-data-
 
       # NOTE: no [chronos] extras here — the daily runner ships GBM/ridge/
       # naive/ensemble only (documented in publish/forecast.py). Zero-shot

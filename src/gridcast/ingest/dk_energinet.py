@@ -23,7 +23,7 @@ import json
 import logging
 import re
 import time
-from datetime import date
+from datetime import date, timedelta
 
 import pandas as pd
 
@@ -78,13 +78,14 @@ def _wait_from(body: str, attempt: int) -> int:
     return (int(m.group(1)) if m else 60) + attempt * 30 + 5
 
 
-def fetch_month(session, ym: str) -> str:
+def fetch_month(session, ym: str, start_d: date | None = None, end_d: date | None = None) -> str:
     """One month with offset paging: a full month of DK36 industry rows
     (~33 codes/h, ~24k) exceeds the per-request limit; pages are pulled by
     offset until `total` is reached. 429 (HTTP or embedded) is retried with
-    the server's own 'Try again in Ns' + margin."""
-    start = pd.Timestamp(f"{ym}-01")
-    end = start + pd.offsets.MonthEnd(0) + pd.Timedelta(days=1)
+    the server's own 'Try again in Ns' + margin. `start_d`/`end_d` clip the
+    window exactly (incremental daily runs fetch only the fresh tail)."""
+    start = pd.Timestamp(start_d or f"{ym}-01")
+    end = pd.Timestamp(end_d) if end_d else (start + pd.offsets.MonthEnd(0) + pd.Timedelta(days=1))
     page_size = 8000
     offset = 0
     all_records: list[dict] = []
@@ -133,9 +134,14 @@ def ingest(start: date, end: date, *, raw_dir=None, session=None, pause_s: float
     session = session or make_session()
     frames = []
     for ym in month_range(start, end):
-        log.info("Energinet: month %s", ym)
+        y, m = int(ym[:4]), int(ym[5:])
+        month_first = date(y, m, 1)
+        month_last = (pd.Timestamp(y, m, 1) + pd.offsets.MonthEnd(0)).date()
+        start_d = max(start, month_first)
+        end_d = min(end, month_last)
+        log.info("Energinet: window %s (%s..%s)", ym, start_d, end_d)
         try:
-            text = fetch_month(session, ym)
+            text = fetch_month(session, ym, start_d, end_d + timedelta(days=1))
         except IngestError:
             log.exception("Energinet: %s skipped", ym)
             continue

@@ -134,3 +134,33 @@ def test_daily_yaml_valid_and_has_required_permissions():
     names = [s.get("name", "") for s in steps]
     assert any("Healthcheck" in n for n in names)
     assert any("Upload Pages" in n for n in names)
+
+
+def test_ensemble_dedup_identity_golden(tmp_path, stub_weather):
+    """Residuals are computed once per unit (E9-hot-path dedupe); the weighted
+    forecast and intervals must stay bit-identical to the pre-dedupe golden
+    values (pinned from the real pipeline on this fixture)."""
+    _write_markets(tmp_path)
+    issue = pd.Timestamp("2026-09-05 02:00", tz="UTC")
+    snap = pub.forecast_unit("GB", "GB", issue, tmp_path)
+    assert snap["weights"] == pytest.approx(
+        {"naive": 0.0, "ridge": 0.1256, "lightgbm": 0.8744}, abs=1e-4
+    )
+    p10 = snap["points"][10]
+    assert p10["pred"] == pytest.approx(26177.0, abs=0.5)
+    assert p10["lo90"] == pytest.approx(25280.7, abs=0.5)
+    assert p10["hi90"] == pytest.approx(27073.3, abs=0.5)
+    assert len(snap["points"]) == 96
+
+
+def test_incremental_start_uses_last_parquet_timestamp(tmp_path):
+    from datetime import date
+
+    from gridcast.cli import _incremental_start
+
+    _write_unit(tmp_path, "GB", "GB", days=10)
+    start = _incremental_start("GB", tmp_path, date(2026, 3, 1))
+    # last parquet day is 2026-07-10 (10 days from 2026-07-01); minus 2d overlap
+    assert start == date(2026, 7, 8)
+    # empty dir -> full default
+    assert _incremental_start("FR", tmp_path, date(2026, 3, 1)) == date(2026, 3, 1)

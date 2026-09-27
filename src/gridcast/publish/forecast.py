@@ -135,11 +135,15 @@ def _residual_predictions(
     return pd.concat(out) if out else pd.Series(dtype="float64")
 
 
-def _ensemble_weights(market: str, unit: str, hist: pd.Series) -> dict[str, float]:
-    errs = {}
-    for m in ENSEMBLE_MEMBERS:
-        r = _residual_predictions(market, unit, hist, m)
-        errs[m] = abs(r).mean() if len(r) else None
+def _ensemble_residuals(market: str, unit: str, hist: pd.Series) -> dict[str, pd.Series]:
+    """Per-member residual series, computed ONCE per unit (weights and
+    interval quantiles both read from this set — the E9 hot path used to
+    refit every member twice per unit, measured ~2x the time it should)."""
+    return {m: _residual_predictions(market, unit, hist, m) for m in ENSEMBLE_MEMBERS}
+
+
+def _ensemble_weights(residuals: dict[str, pd.Series]) -> dict[str, float]:
+    errs = {m: (abs(r).mean() if len(r) else None) for m, r in residuals.items()}
     valid = {m: e for m, e in errs.items() if e is not None and e > 0}
     if len(valid) < 2:
         return {m: 1.0 / len(ENSEMBLE_MEMBERS) for m in ENSEMBLE_MEMBERS}
@@ -180,7 +184,8 @@ def forecast_unit(
             return model.predict(targets_).astype("float64")
 
     if champion == "ensemble":
-        weights = _ensemble_weights(market, unit, hist)
+        residuals = _ensemble_residuals(market, unit, hist)
+        weights = _ensemble_weights(residuals)
         pred = None
         for m in ENSEMBLE_MEMBERS:
             model = _fit_single(m, market, unit, hist)
@@ -189,7 +194,7 @@ def forecast_unit(
         # intervals from the weighted residual reconstruction over rolling anchors
         resid_signed = None
         for m in ENSEMBLE_MEMBERS:
-            r = _residual_predictions(market, unit, hist, m) * weights[m]
+            r = residuals[m] * weights[m]
             resid_signed = r if resid_signed is None else resid_signed.add(r, fill_value=0)
         resid_abs = resid_signed.abs() if resid_signed is not None else None
     else:

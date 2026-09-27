@@ -27,14 +27,27 @@ def _default_start() -> date:
     return (pd.Timestamp(first) - pd.DateOffset(months=6)).date()
 
 
+def _incremental_start(market: str, out_dir, default_start: date) -> date:
+    """Daily-driver start: if a market already has processed data, begin at
+    its last timestamp minus a 2-day overlap (re-reads only the fresh tail —
+    this is what keeps the CI ingest under a few minutes on a warm cache)."""
+    from gridcast.ingest.base import read_processed
+
+    df = read_processed(market, out_dir)
+    if df.empty:
+        return default_start
+    last = df["timestamp"].max().date()
+    return max(default_start, last - pd.Timedelta(days=2))
+
+
 def run_ingest(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="gridcast ingest")
     parser.add_argument("--all", action="store_true", help="ingest all markets (default)")
     parser.add_argument("--market", nargs="+", choices=MARKETS, help="subset of markets")
     parser.add_argument(
         "--start",
-        default=_default_start().isoformat(),
-        help="first day (YYYY-MM-DD), default: 6 months back",
+        default=None,
+        help="first day (YYYY-MM-DD); default: incremental from existing data",
     )
     parser.add_argument("--end", default=date.today().isoformat(), help="last day (YYYY-MM-DD)")
     parser.add_argument("--raw-dir", default=str(RAW_DIR))
@@ -43,19 +56,29 @@ def run_ingest(argv: list[str]) -> int:
 
     from pathlib import Path
 
-    start = datetime.strptime(args.start, "%Y-%m-%d").date()
     end = datetime.strptime(args.end, "%Y-%m-%d").date()
     markets = tuple(args.market) if args.market else MARKETS
     raw_dir, out_dir = Path(args.raw_dir), Path(args.out_dir)
+    default_start = (
+        datetime.strptime(args.start, "%Y-%m-%d").date()
+        if args.start
+        else _default_start()
+    )
 
     summaries, failed = [], []
     for market in markets:
         adapter = ADAPTERS[market]
+        start = (
+            default_start
+            if args.start
+            else _incremental_start(market, out_dir, default_start)
+        )
         try:
             df = adapter.ingest(start, end, raw_dir=raw_dir)
             written = write_parquet(df, market, out_dir)
             summary = summarize(df, market)
             summary["parquet_files"] = len(written)
+            summary["start"] = str(start)
             summaries.append(summary)
         except IngestError:
             log.exception("market %s failed", market)
