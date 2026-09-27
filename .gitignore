@@ -28,3 +28,6 @@ reports/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Daily forecast snapshots are artifacts, not source
+data/forecasts/**
