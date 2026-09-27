@@ -1,22 +1,70 @@
 {
- "generated_at": "2026-09-27T14:40:07+00:00",
+ "generated_at": "2026-09-27T14:48:23+00:00",
  "units": {
+  "GB": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 7.3861,
+   "naive_value": 9.4883
+  },
+  "ALL": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "mape_pct",
+   "champion_value": 3.4634,
+   "naive_value": 3.7574
+  },
+  "NSW1": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "smape_pct",
+   "champion_value": 6.7372,
+   "naive_value": 7.163
+  },
+  "QLD1": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 3.9849,
+   "naive_value": 5.6224
+  },
+  "SA1": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 14.218,
+   "naive_value": 17.1778
+  },
+  "TAS1": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "smape_pct",
+   "champion_value": 6.1988,
+   "naive_value": 7.8144
+  },
+  "VIC1": {
+   "champion_model": "ridge-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 7.4355,
+   "naive_value": 10.0933
+  },
+  "NEM_TOTAL": {
+   "champion_model": "ridge-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 4.6347,
+   "naive_value": 4.9486
+  },
   "FR": {
    "champion_model": "ensemble-inv-mae-14",
    "primary_metric": "mape_pct",
-   "champion_value": 4.1321,
+   "champion_value": 4.128,
    "naive_value": 5.0274
   },
   "DE": {
    "champion_model": "ensemble-inv-mae-14",
    "primary_metric": "mape_pct",
-   "champion_value": 4.6237,
+   "champion_value": 4.6338,
    "naive_value": 6.254
   },
   "BE": {
    "champion_model": "lightgbm-weather",
    "primary_metric": "mape_pct",
-   "champion_value": 17.1709,
+   "champion_value": 16.9811,
    "naive_value": 25.1978
   },
   "DK": {
