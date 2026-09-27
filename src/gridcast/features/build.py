@@ -27,7 +27,9 @@ MARKET_LAG_HOURS = {
     "FR": (168, 336),
     "DE": (168, 336),
     "BE": (168, 336),
-    "DK": (168, 336),
+    # DK's 18-day settlement lag needs lag >= 432h+48h like GB's 21d case;
+    # 168h/336h would be all-NaN at every predict call (train/predict shift)
+    "DK": (504, 672),
     "KZ": (168, 336),
 }
 SHORT_LAG_HOURS = (24, 48)

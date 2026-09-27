@@ -9,7 +9,8 @@ model can never peek beyond it).
 import numpy as np
 import pandas as pd
 
-from gridcast.features.build import lag_features
+from gridcast.eval.backtest import PUB_LAG_DAYS
+from gridcast.features.build import MARKET_LAG_HOURS, lag_features
 
 STEP_MIN = 30
 STEPS_PER_DAY = 1440 // STEP_MIN  # 48
@@ -86,3 +87,16 @@ def test_publication_cutoff_yields_nan_not_future():
     assert np.isnan(lg2["lag_24h"].iloc[0])
     # t1 - 48h = cutoff - 36h: still present (arithmetic, not convention)
     assert lg2["lag_48h"].iloc[0] == hist.iloc[cutoff_pos - 36 * (60 // STEP_MIN)]
+
+
+def test_market_lag_sets_are_publication_safe_for_their_market():
+    """Invariant (caught DK at E7 review): min lag must cover the market's
+    publication lag at the far end of the 48h horizon, else the feature is
+    all-NaN at predict time — train rows informative, predict rows empty."""
+    horizon_h = 48
+    for market, lags in MARKET_LAG_HOURS.items():
+        required = PUB_LAG_DAYS[market] * 24 + horizon_h
+        assert min(lags) >= required, (
+            f"{market}: lag {min(lags)}h < pub_lag {PUB_LAG_DAYS[market]}d + horizon "
+            f"= {required}h — features would be all-NaN at predict"
+        )
