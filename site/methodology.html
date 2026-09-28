@@ -42,18 +42,21 @@
       <div class="pipe-arrow">↓</div>
       <div class="pipe"><b>publish</b><span>champions retrained daily + conformal bands → site/data JSON → this site</span></div>
     </div>
+    <div class="table-scroll">
     <table class="clean-table">
       <thead><tr><th>operator (attribution)</th><th>market unit(s)</th><th>cadence</th><th>our publication lag</th></tr></thead>
       <tbody id="src-table">
         <tr><td colspan="4" class="note">loading units metadata from the published data bundle…</td></tr>
       </tbody>
     </table>
+    </div>
     <noscript><p class="note">JavaScript is off — the source table lives at
       <a href="data/latest_forecasts.json">data/latest_forecasts.json</a> (key <code>units_meta</code>).</p></noscript>
   </section>
 
   <section class="card">
     <h2>Models and their roles</h2>
+    <div class="table-scroll">
     <table class="clean-table">
       <thead><tr><th>model</th><th>role</th><th>strong on</th><th>known weakness</th></tr></thead>
       <tbody>
@@ -64,6 +67,7 @@
         <tr><td>inverse-MAE ensemble</td><td>production champion (GB/FR per current benchmark)</td><td>variance reduction across members</td><td>weights lag regime shifts (14-anchor window)</td></tr>
       </tbody>
     </table>
+    </div>
   </section>
 
   <section class="card">

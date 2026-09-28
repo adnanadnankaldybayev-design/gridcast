@@ -107,6 +107,28 @@ def statistical_insight(latest: dict, history: dict, metrics_json: dict) -> dict
     facts = gather_facts(latest, history, metrics_json)
     deltas = [r["delta"] for r in facts["rating_rows"] if r["delta"] is not None]
     mean_delta = sum(deltas) / len(deltas) if deltas else None
+    if mean_delta is None:
+        # empty/unreadable metrics bundle: degrade to a jargon-free note instead
+        # of formatting None inside the headline
+        miss = (facts.get("yesterday_misses") or [None])[0]
+        return {
+            "mode": "statistical",
+            "items": [
+                {
+                    "headline": "Benchmark bundle fresh-quota pending — digest resumes tomorrow.",
+                    "body": (
+                        f"Biggest miss yesterday: {miss['unit']} — {miss['abs_err_mw']} MW. "
+                        if miss
+                        else "No forecast-past-day overlap yet. "
+                    )
+                    + f"Running {facts['days_n']} consecutive daily issues.",
+            "rating": "insufficient data",
+            "basis": {"units": 0, "wins": 0, "mean_delta_pp": None,
+                      "biggest_miss": miss, "streak_days": facts["days_n"]},
+                }
+            ],
+            "facts_for_review": facts,
+        }
     wins = [r for r in facts["rating_rows"] if (r["delta"] or 0) > 0]
     ties = [r for r in facts["rating_rows"] if r["delta"] is not None and r["delta"] <= 0]
 
@@ -259,11 +281,28 @@ def llm_insight(latest: dict, history: dict, metrics_json: dict) -> dict:
         statue["llm_note"] = f"unsupported numbers {nums_needed[:4]}; statistical mode"
         return statue
 
+    allowed_ratings = {label for _lim, label in RATING_ORDER} | {"watch list"}
+    try:
+        fields = (parsed["headline"], parsed["body"], parsed["rating"])
+    except (KeyError, TypeError) as exc:
+        # valid JSON missing the contract fields (e.g. {}) — fallback, not a crash
+        log.warning("LLM answer misses contract fields (%s) -> statistical fallback", exc)
+        statue["llm_note"] = f"contract fields missing ({exc}); statistical mode"
+        return statue
+    if fields[2] not in allowed_ratings:
+        log.warning("LLM rating %r outside the enum -> statistical fallback", fields[2])
+        statue["llm_note"] = f"rating {fields[2]!r} not in contract enum; statistical mode"
+        return statue
+    if not all(isinstance(f, str) and f.strip() for f in fields):
+        log.warning("LLM contract fields not non-empty strings -> statistical fallback")
+        statue["llm_note"] = "contract fields empty/not strings; statistical mode"
+        return statue
+
     items = statue["items"].copy()
     items[0] = {
-        "headline": parsed["headline"],
-        "body": parsed["body"],
-        "rating": parsed["rating"],
+        "headline": fields[0],
+        "body": fields[1],
+        "rating": fields[2],
         "basis": items[0]["basis"],
     }
     return {

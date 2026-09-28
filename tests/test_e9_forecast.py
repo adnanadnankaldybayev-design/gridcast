@@ -28,11 +28,27 @@ def _write_unit(tmp_path, market="GB", region="GB", days=70, step_min=30, base=2
 
 @pytest.fixture
 def stub_weather(monkeypatch):
-    """No Open-Meteo calls in tests."""
+    """No Open-Meteo calls in tests — predict-time NWP is monkeypatched AND
+    the archive points of every tested unit are seeded in-memory, so GBM fit
+    (which reads unit_weather -> point_data) never reaches the network either
+    (caught by a 429-flake run: suite quietly used the real API before)."""
     idx = pd.date_range("2025-12-01", periods=4000, freq="h", tz="UTC")
     cols = ["w_temperature_2m", "w_relative_humidity_2m", "w_wind_speed_10m"]
     stub = pd.DataFrame(8.0, index=idx, columns=cols)
     monkeypatch.setattr(pub, "unit_weather_forecast", lambda unit, hours, session=None: stub)
+
+    from gridcast.features.weather import POINTS, seed_point_data
+
+    # archive points are stored RAW (unit_weather adds the w_ prefix itself)
+    archive_idx = pd.date_range("2026-01-01", periods=300 * 24, freq="h", tz="UTC")
+    archive_stub = pd.DataFrame(
+        8.0,
+        index=archive_idx,
+        columns=["temperature_2m", "relative_humidity_2m", "wind_speed_10m"],
+    )
+    for unit in ("GB", "FR"):
+        for lat, lon, _w in POINTS[unit]:
+            seed_point_data(lat, lon, archive_stub)
     return stub
 
 
@@ -192,13 +208,15 @@ def test_ensemble_dedup_identity_golden(tmp_path, stub_weather):
     _write_markets(tmp_path)
     issue = pd.Timestamp("2026-09-05 02:00", tz="UTC")
     snap = pub.forecast_unit("GB", "GB", issue, tmp_path)
+    # pinned under the deterministic archive stub above (offline; the previous
+    # numbers silently depended on the real on-disk weather cache)
     assert snap["weights"] == pytest.approx(
-        {"naive": 0.0, "ridge": 0.1256, "lightgbm": 0.8744}, abs=1e-4
+        {"naive": 0.0, "ridge": 0.0069, "lightgbm": 0.9931}, abs=1e-4
     )
     p10 = snap["points"][10]
-    assert p10["pred"] == pytest.approx(26177.0, abs=0.5)
-    assert p10["lo90"] == pytest.approx(25280.7, abs=0.5)
-    assert p10["hi90"] == pytest.approx(27073.3, abs=0.5)
+    assert p10["pred"] == pytest.approx(26807.9, abs=0.5)
+    assert p10["lo90"] == pytest.approx(26757.6, abs=0.5)
+    assert p10["hi90"] == pytest.approx(26858.2, abs=0.5)
     assert len(snap["points"]) == 96
 
 

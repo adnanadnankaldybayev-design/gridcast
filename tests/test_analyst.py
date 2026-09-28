@@ -194,3 +194,51 @@ def test_llm_valid_llm_used(monkeypatch):
     assert out["mode"] == "llm"
     assert out["items"][0]["headline"] == "Champions held the line by 2.0 pts across 2 units."
     assert out["items"][0]["rating"] == "strong day"
+
+
+def _fake_llm_response(payload: dict):
+    class _Resp:
+        status_code = 200
+
+        def json(self):
+            return {"choices": [{"message": {"content": json.dumps(payload)}}]}
+
+    return _Resp()
+
+
+def test_llm_empty_json_object_falls_back_not_crash(monkeypatch):
+    """Adversarial (review): a syntactically valid {} passed the number check
+    (zero numbers inside) and then hit a KeyError downstream. Now it is a
+    clean statistical fallback with an explicit note."""
+    monkeypatch.setenv("LLM_API_KEY", "sk-test")
+    monkeypatch.setattr(analyst.requests, "post", lambda *a, **kw: _fake_llm_response({}))
+    out = analyst.llm_insight(latest_fixture(), history_fixture(), metrics_fixture())
+    assert out["mode"] == "statistical"
+    assert "contract fields missing" in out["llm_note"]
+
+
+def test_llm_out_of_enum_rating_falls_back(monkeypatch):
+    """Style contract: rating outside the documented enum is rejected, not
+    silently rendered as a fake 'AI verdict'."""
+    monkeypatch.setenv("LLM_API_KEY", "sk-test")
+    monkeypatch.setattr(
+        analyst.requests,
+        "post",
+        lambda *a, **kw: _fake_llm_response(
+            {"headline": "2.0 pts over 2 units", "body": "1 day streak", "rating": "super epic day"}
+        ),
+    )
+    out = analyst.llm_insight(latest_fixture(), history_fixture(), metrics_fixture())
+    assert out["mode"] == "statistical"
+    assert "not in contract enum" in out["llm_note"]
+
+
+def test_statistical_empty_metrics_does_not_format_none():
+    """Empty/unreadable metrics bundle: no NoneType crash anywhere in the
+    digest (review caught _fmt_metric(None) TypeError on this path)."""
+    hist = history_fixture().copy()
+    out = analyst.statistical_insight(latest_fixture(), hist, {"units": {}})
+    assert out["mode"] == "statistical"
+    head = out["items"][0]["headline"]
+    assert "None" not in head and "pending" in head
+    assert out["items"][0]["rating"] == "insufficient data"

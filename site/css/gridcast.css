@@ -255,3 +255,12 @@ h3 { font-size: var(--gc-fs-base); font-weight: 600; color: var(--gc-fg); margin
 @media (min-width: 1360px) {
   .units-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* review: mobile overflow fixes (390px) — wide tables scroll INSIDE their card,
+   hero chart clips its slight plot overshoot instead of panning the page */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll .clean-table { min-width: 460px; }
+.hero-chart { overflow: hidden; }
+@media (max-width: 880px) { .chart { overflow: hidden; } }
+/* iPhone home-indicator safe area */
+body { padding-bottom: env(safe-area-inset-bottom, 0px); }
