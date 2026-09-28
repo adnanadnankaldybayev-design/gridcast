@@ -55,16 +55,41 @@ def history_fixture():
                     "KZ": {
                         "champion": "naive",
                         "points_short": [
-                            {"t": "2026-09-27T12:00:00+00:00", "pred": 3500.0, "lo90": 3000.0, "hi90": 4000.0},
-                            {"t": "2026-09-27T13:00:00+00:00", "pred": 3700.0, "lo90": 3200.0, "hi90": 4200.0},
-                            {"t": "2026-09-27T14:00:00+00:00", "pred": 4000.0, "lo90": 3500.0, "hi90": 4500.0},
+                            {
+                                "t": "2026-09-27T12:00:00+00:00",
+                                "pred": 3500.0,
+                                "lo90": 3000.0,
+                                "hi90": 4000.0,
+                            },
+                            {
+                                "t": "2026-09-27T13:00:00+00:00",
+                                "pred": 3700.0,
+                                "lo90": 3200.0,
+                                "hi90": 4200.0,
+                            },
+                            {
+                                "t": "2026-09-27T14:00:00+00:00",
+                                "pred": 4000.0,
+                                "lo90": 3500.0,
+                                "hi90": 4500.0,
+                            },
                         ],
                     },
                     "IE": {
                         "champion": "lightgbm",
                         "points_short": [
-                            {"t": "2026-09-27T12:00:00+00:00", "pred": 4600.0, "lo90": 4000.0, "hi90": 5000.0},
-                            {"t": "2026-09-27T13:00:00+00:00", "pred": 4500.0, "lo90": 4100.0, "hi90": 4900.0},
+                            {
+                                "t": "2026-09-27T12:00:00+00:00",
+                                "pred": 4600.0,
+                                "lo90": 4000.0,
+                                "hi90": 5000.0,
+                            },
+                            {
+                                "t": "2026-09-27T13:00:00+00:00",
+                                "pred": 4500.0,
+                                "lo90": 4100.0,
+                                "hi90": 4900.0,
+                            },
                         ],
                     },
                 },
@@ -98,8 +123,6 @@ def test_statistical_engine_uses_real_numbers_only():
     head = out["items"][0]["headline"]
     mean_delta = ((3.0 - 2.0) + (4.5 - 4.5)) / 2.0
     assert f"{mean_delta:.2f}" in head
-    body = out["items"][0]["body"]
-    # biggest miss: ref frame pred 4000 vs published v 3900 -> 100.0 MW on KZ first?
     assert "units watching" not in head
     assert out["items"][0]["rating"] in ("strong day", "steady day", "mixed day", "watch list")
     # every number in the output traceable to inputs
@@ -120,7 +143,9 @@ def test_llm_disabled_key_absent_returns_statistical(monkeypatch):
 
 def test_llm_bad_numbers_falls_back(monkeypatch):
     monkeypatch.setenv("LLM_API_KEY", "sk-test")
-    fake = json.dumps({"headline": "GB demand is 999999 MW", "body": "crazy", "rating": "strong day"})
+    fake = json.dumps(
+        {"headline": "GB demand is 999999 MW", "body": "crazy", "rating": "strong day"}
+    )
 
     class _Resp:
         status_code = 200

@@ -35,7 +35,7 @@ def shoot() -> None:
             for page_name in PAGES:
                 page = context.new_page()
                 errors: list[str] = []
-                page.on("pageerror", lambda e: errors.append(str(e)))
+                page.on("pageerror", lambda e, errs=errors: errs.append(str(e)))
                 page.goto(f"{BASE}/{page_name}", wait_until="networkidle")
                 tgt = OUT / f"{page_name.replace('.html', '')}-{name}.png"
                 page.screenshot(path=tgt, full_page=True)
