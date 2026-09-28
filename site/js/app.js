@@ -1,162 +1,348 @@
-/* GridCast dashboard v1 — reads site/data/{latest_forecasts,forecast_history,metrics}.json
-   Render one market chart per selected unit:
-   - actual tail (published demand, ends at data_through),
-   - latest forecast with 80% and 90% interval bands,
-   - previous days' forecasts from forecast_history (validation overlay).
-   Fully static; no build step. */
-(async function () {
+/* GridCast dashboard (vanilla, no build step).
+ * Reads site/data/{latest_forecasts,forecast_history,metrics}.json.
+ * Sections: partial renderers (header/KPIs/segments/main chart/unit cards),
+ * skeletons->content, retry on fetch failure, graceful-degrade banner.
+ * Data contract is intentionally unchanged (tests pin it). */
+(() => {
   const $ = (id) => document.getElementById(id);
-  const fmt = new Intl.NumberFormat("en-GB");
-
-  async function load(name) {
-    const r = await fetch(`data/${name}?v=${Date.now()}`);
-    if (!r.ok) throw new Error(`fetch ${name}: ${r.status}`);
-    return r.json();
-  }
-
-  let latest, history, metrics;
-  try {
-    [latest, history, metrics] = await Promise.all([
-      load("latest_forecasts.json"),
-      load("forecast_history.json"),
-      load("metrics.json").catch(() => ({ units: {} })),
-    ]);
-  } catch (e) {
-    $("banner").textContent =
-      "Dashboard data not generated yet — run `gridcast forecast` (or wait for the daily CI job).";
-    $("banner").classList.add("degraded");
-    return;
-  }
-
-  $("gen").textContent = "last generated: " + latest.generated_at;
-  const units = Object.keys(latest.units);
-  const degraded = latest.degraded || [];
-  const streak = (history.days || []).length;
-  $("headline").textContent =
-    `${units.length} market units · ${streak} consecutive daily issues · models retrained daily`;
-  const banner = $("banner");
-  if (degraded.length) {
-    banner.classList.add("degraded");
-    banner.innerHTML = `⚠ Graceful degrade: ${degraded
-      .map((d) => `<b>${d.unit}</b>`)
-      .join(", ")} missed today's update — showing each market's last valid day anyway. Last issue: ${latest.issue}`;
-  } else {
-    banner.innerHTML = `<span class="live">✔ healthy</span> — all ${units.length} units updated at ${latest.generated_at}`;
-  }
-
-  // ---------- market picker ----------
-  const order = ["KZ", "GB", "FR", "DE", "BE", "DK", "ALL", "KZ_W", "NEM_TOTAL",
-                 "NSW1", "QLD1", "SA1", "TAS1", "VIC1"];
-  const ordered = order.filter((u) => units.includes(u)).concat(
-    units.filter((u) => !order.includes(u))
-  );
-  let current = ordered.includes("KZ") ? "KZ" : ordered[0];
-  const picker = $("picker");
-  for (const u of ordered) {
-    const b = document.createElement("button");
-    b.textContent = u;
-    b.setAttribute("aria-pressed", u === current);
-    b.onclick = () => {
-      current = u;
-      [...picker.children].forEach((c) =>
-        c.setAttribute("aria-pressed", c.textContent === current)
-      );
-      render();
-    };
-    picker.appendChild(b);
-  }
-
-  // ---------- chart ----------
-  const COLORS = {
-    actual: "#58a6ff", forecast: "#3fb950", yesterday: "#d29922",
-    band90: "rgba(63,185,80,0.18)", band80: "rgba(63,185,80,0.30)",
+  const C = {
+    green: "#3fb950",
+    cyan: "#39c5cf",
+    amber: "#d29922",
+    accent: "#58a6ff",
+    grid: "#21262d",
+    fg: "#e6edf3",
+    muted: "#8b949e",
+  };
+  const FLAGS = {
+    GB: "\u{1F1EC}\u{1F1E7}", ALL: "\u{1F1EE}\u{1F1EA}", FR: "\u{1F1EB}\u{1F1F7}",
+    DE: "\u{1F1E9}\u{1F1EA}", BE: "\u{1F1E7}\u{1F1EA}", DK: "\u{1F1E9}\u{1F1F0}",
+    KZ: "\u{1F1F0}\u{1F1FF}", KZ_W: "\u{1F1F0}\u{1F1FF}",
+    NEM_TOTAL: "\u{1F1E6}\u{1F1FA}", NSW1: "\u{1F1E6}\u{1F1FA}",
+    QLD1: "\u{1F1E6}\u{1F1FA}", SA1: "\u{1F1E6}\u{1F1FA}",
+    TAS1: "\u{1F1E6}\u{1F1FA}", VIC1: "\u{1F1E6}\u{1F1FA}",
+  };
+  const NAMES = {
+    GB: "Great Britain (NESO)", ALL: "Ireland, All-Island (EirGrid)",
+    FR: "France (RTE)", DE: "Germany (SMARD)", BE: "Belgium (Elia)",
+    DK: "Denmark (Energinet)", KZ: "Kazakhstan, North–South zone (KOREM)",
+    KZ_W: "Kazakhstan, West zone (KOREM)",
+    NEM_TOTAL: "Australia NEM total (AEMO)",
+    NSW1: "Australia — New South Wales", QLD1: "Australia — Queensland",
+    SA1: "Australia — South Australia", TAS1: "Australia — Tasmania", VIC1: "Australia — Victoria",
+  };
+  const SUBTEXT = {
+    KZ: "Clearing-trade demand of centralized trades — an off-take view of KOREM's market, not the physical grid load.",
+    KZ_W: "Clearing-trade demand, West zone — trade-side volume from KOREM, not physical grid load.",
+    GB: "National demand; operator actuals reach us ~21 days late by design.",
+    DK: "Industry-settlement consumption; publishes ~18 days late.",
+    BE: "Transmission offtake; midday solar depressions are real physics.",
+    FR: "Definitive archive was 30-minute until Jun 2026 (operator's design).",
   };
 
-  function xs(series, key = "t") {
-    return series.map((p) => p[key].replace(" ", "T"));
-  }
-  function ys(series, key = "v") {
-    return series.map((p) => p[key]);
+  let LATEST = null;
+  let HISTORY = null;
+  let METRICS = null;
+  let current = null;
+  const orderedFor = (units) => {
+    const order = ["KZ", "GB", "FR", "DE", "BE", "DK", "ALL", "KZ_W", "NEM_TOTAL",
+                   "NSW1", "QLD1", "SA1", "TAS1", "VIC1"];
+    return order.filter((u) => units.includes(u)).concat(units.filter((u) => !order.includes(u)));
+  };
+
+  async function fetchJSON(path, retries = 3) {
+    let err = null;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const r = await fetch(path + "?v=" + Date.now(), { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return await r.json();
+      } catch (e) {
+        err = e;
+        await new Promise((res) => setTimeout(res, 600 * (i + 1)));
+      }
+    }
+    throw err;
   }
 
-  function bandTrace(points, loKey, hiKey, color, name) {
-    const x = xs(points);
-    return [
-      { x, y: ys(points, loKey), mode: "lines", line: { width: 0 },
-        showlegend: false, hoverinfo: "skip", name: name + " lo" },
-      { x, y: ys(points, hiKey), mode: "lines", line: { width: 0 },
-        fill: "tonexty", fillcolor: color, name, hoverinfo: "skip" },
-    ];
+  function failState(e) {
+    $("live-pill").classList.remove("live");
+    $("live-text").textContent = "offline";
+    const bar = $("errbar");
+    bar.hidden = false;
+    bar.className = "banner err";
+    bar.innerHTML =
+      "Couldn't load the dashboard data. " +
+      "It is regenerated daily at 02:17 UTC; if this persists, the run failed. " +
+      `<button class="retry" id="retry-btn">retry (${String(e).slice(0, 80)})</button>`;
+    $("retry-btn").onclick = () => location.reload();
+    $("chart").innerHTML =
+      `<div class="card" style="text-align:center;color:var(--muted)">chart unavailable until data loads (${String(e) === "404" ? "no data files yet — first CI run pending" : "fetch error"})</div>`;
   }
 
-  function render() {
-    const u = latest.units[current];
-    const traces = [];
-    const actualX = u.published_demand_tail;
-    traces.push({
-      x: xs(actualX), y: ys(actualX),
-      mode: "lines", line: { color: COLORS.actual, width: 2 },
-      name: "actual (published operator data)",
+  function fmtNum(n, dp = 1) {
+    return n == null ? "—" : n.toLocaleString("en-GB", { maximumFractionDigits: dp });
+  }
+
+  function fmtWhen(iso) {
+    try {
+      return new Date(iso).toLocaleString("en-GB", {
+        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC",
+      }) + " UTC";
+    } catch {
+      return iso;
+    }
+  }
+
+  // ---------- header ----------
+  function renderHeader() {
+    const units = Object.keys(LATEST.units);
+    const degraded = LATEST.degraded || [];
+    const days = (HISTORY.days || []).length;
+    $("live-pill").classList.add(degraded.length ? "" : "live");
+    $("live-text").textContent = degraded.length ? `degraded ×${degraded.length}` : "live";
+    $("c-markets").textContent = `${units.length} markets online`;
+    $("c-days").textContent = `${days} days streak`;
+    $("c-when").textContent = `updated ${fmtWhen(LATEST.generated_at)}`;
+    const b = $("banner");
+    if (degraded.length) {
+      b.hidden = false;
+      b.className = "banner warn";
+      b.innerHTML =
+        `⚠ Graceful degrade — ${degraded.map((d) => `<b>${d.unit}</b>`).join(", ")} ` +
+        `didn't update today; those markets show their last valid day. Everything else is fresh.`;
+    } else {
+      b.hidden = false;
+      b.className = "banner ok";
+      b.innerHTML = `<b style="color:var(--green)">✔ healthy</b> — all ${units.length} market units refreshed at ${fmtWhen(LATEST.generated_at)};
+        issue point ${LATEST.issue.replace("T", " ").slice(0, 16)} UTC.`;
+    }
+  }
+
+  // ---------- KPI row ----------
+  function renderKPIs() {
+    const units = Object.keys(LATEST.units);
+    let best = null;
+    for (const [u, m] of Object.entries(METRICS.units)) {
+      const v = m.champion_value;
+      if (best === null || v < best.v) best = { u, v, champ: m.champion_model, metric: m.primary_metric };
+    }
+    const countries = new Set(Object.values(LATEST.units).map((s) => s.market)).size;
+    const points = Object.values(LATEST.units).reduce((a, s) => a + (s.n_fit_points || 0), 0);
+    const kpiBox = $("kpis");
+    kpiBox.innerHTML = "";
+    const items = [
+      best && {
+        num: `${best.v.toFixed(1)}<small>${best.metric.replace("_pct", "%")}</small>`,
+        cap: `best measured accuracy — ${best.u} (${best.champ})`,
+      },
+      { num: `${units.length}<small>units</small>`, cap: "markets observed daily" },
+      { num: `${countries}<small>countries</small>`, cap: "on 4 data continents" },
+      { num: `${fmtNum(Math.round(points / 1000), 0)}k<small>points</small>`, cap: "fit points used today (150-day windows)" },
+    ].filter(Boolean);
+    for (const it of items) {
+      const d = document.createElement("div");
+      d.className = "kpi";
+      d.innerHTML = `<div class="num">${it.num}</div><div class="cap">${it.cap}</div>`;
+      kpiBox.appendChild(d);
+    }
+  }
+
+  // ---------- segments ----------
+  function renderSegments() {
+    const wrap = $("segments");
+    wrap.innerHTML = "";
+    for (const u of orderedFor(Object.keys(LATEST.units))) {
+      const b = document.createElement("button");
+      b.className = "seg";
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", u === current);
+      b.innerHTML = `<span class="flag">${FLAGS[u] || ""}</span><span>${u}</span>`;
+      b.onclick = () => {
+        current = u;
+        [...wrap.children].forEach((c) => {
+          const code = c.getElementsByTagName("span")[1].textContent;
+          c.setAttribute("aria-selected", code === current);
+        });
+        renderCards();
+        renderChart();
+      };
+      if (u === current) b.setAttribute("aria-selected", true);
+      wrap.appendChild(b);
+    }
+  }
+
+  // ---------- unit cards ----------
+  function sparkline(vals) {
+    if (!vals || vals.length < 2) return "";
+    const w = 200, h = 42, pad = 2;
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const span = max - min || 1;
+    const step = (w - 2 * pad) / (vals.length - 1);
+    const pts = vals.map((v, i) => [pad + i * step, h - pad - ((v - min) / span) * (h - 2 * pad)]);
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+    return `<svg class="spark" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+      <path d="${d}" fill="none" stroke="${C.accent}" stroke-width="1.4" opacity="0.85"/>
+      <path d="${d} L${pts[pts.length - 1][0]},${h} L${pts[0][0]},${h} Z" fill="${C.accent}" opacity="0.08" stroke="none"/></svg>`;
+  }
+
+  function renderCards() {
+    const grid = $("units-grid");
+    grid.innerHTML = "";
+    for (const u of orderedFor(Object.keys(LATEST.units))) {
+      const s = LATEST.units[u];
+      const m = METRICS.units[u];
+      const btn = document.createElement("button");
+      btn.className = "ucard" + (u === current ? " active" : "");
+      let metricLine = `<div class="u-model">${s.champion}${s.weights ? " · ensemble" : ""} · latest</div>`;
+      if (m) {
+        const delta = m.naive_value - m.champion_value;
+        const good = delta > 0;
+        metricLine =
+          `<div class="u-model">${s.champion} vs naive</div>` +
+          `<div class="delta ${good ? "good" : "warn"}">${m.champion_value.toFixed(2)} ${m.primary_metric.replace("_pct", "%")}
+           <span style="color:var(--muted);font-weight:500"> · naive ${m.naive_value.toFixed(2)}</span></div>`;
+      }
+      const spark = sparkline(s.published_demand_tail.map((p) => p.v));
+      btn.innerHTML =
+        `<div class="u-head"><span class="u-code">${FLAGS[u] || ""} ${u}</span></div>
+         ${metricLine}${spark}`;
+      btn.onclick = () => {
+        current = u;
+        renderSegments();
+        renderCards();
+        renderChart();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+      grid.appendChild(btn);
+    }
+    $("units-note").textContent = ` — click a card to focus the main chart`;
+  }
+
+  // ---------- main chart ----------
+  function tracesFor(u) {
+    const s = LATEST.units[u];
+    const tail = s.published_demand_tail || [];
+    const pts = s.points || [];
+    const clean = (arr) => arr.map((p) => p.t.replace(" ", "T"));
+    const out = [];
+    out.push({
+      x: clean(tail), y: tail.map((p) => p.v),
+      mode: "lines",
+      line: { color: C.accent, width: 2 },
+      name: "actual (published)",
     });
-    const pts = u.points;
-    traces.push(...bandTrace(pts, "lo90", "hi90", COLORS.band90, "90% interval"));
-    traces.push(...bandTrace(pts, "lo80", "hi80", COLORS.band80, "80% interval"));
-    traces.push({
-      x: xs(pts), y: ys(pts, "pred"),
-      mode: "lines", line: { color: COLORS.forecast, width: 2.5, dash: "solid" },
-      name: `forecast (${u.champion})`,
-    });
-
-    // validation overlay: yesterday's forecast vs today's actual publication
-    const histDays = (history.days || []).slice(-3);
-    histDays.forEach((d, i) => {
-      const e = d.units[current];
-      if (!e || !e.points_short) return;
-      const cap = d.date + " forecast";
-      traces.push({
-        x: xs(e.points_short), y: ys(e.points_short, "pred"),
-        mode: i === histDays.length - 1 ? "lines" : "lines",
-        line: { color: COLORS.yesterday, width: 1.5, dash: i === histDays.length - 1 ? "dot" : "dashdot" },
-        opacity: 0.6 + 0.2 * i,
-        name: cap,
+    if (pts.length && pts[0].lo90 != null) {
+      out.push({
+        x: clean(pts), y: pts.map((p) => p.lo90),
+        mode: "lines", line: { width: 0 }, showlegend: false, hoverinfo: "skip",
+        name: "90% lo",
       });
+      out.push({
+        x: clean(pts), y: pts.map((p) => p.hi90),
+        mode: "lines", line: { width: 0 }, fill: "tonexty",
+        fillcolor: "rgba(63,185,80,0.15)", name: "90% interval", hoverinfo: "skip",
+      });
+      out.push({
+        x: clean(pts), y: pts.map((p) => p.lo80),
+        mode: "lines", line: { width: 0 }, showlegend: false, hoverinfo: "skip",
+        name: "80% lo",
+      });
+      out.push({
+        x: clean(pts), y: pts.map((p) => p.hi80),
+        mode: "lines", line: { width: 0 }, fill: "tonexty",
+        fillcolor: "rgba(63,185,80,0.28)", name: "80% interval", hoverinfo: "skip",
+      });
+    }
+    out.push({
+      x: clean(pts), y: pts.map((p) => p.pred),
+      mode: "lines",
+      line: { color: C.green, width: 2.5 },
+      name: `forecast (${LATEST.units[u].champion})`,
     });
+    return out;
+  }
 
+  function historyTraces(u) {
+    const days = (HISTORY.days || []).slice(-3);
+    return days.map((d, i) => {
+      const e = d.units[u];
+      if (!e || !e.points_short) return null;
+      return {
+        x: e.points_short.map((p) => p.t.replace(" ", "T")),
+        y: e.points_short.map((p) => p.pred),
+        mode: "lines",
+        line: {
+          color: C.amber, width: 1.4,
+          dash: i === days.length - 1 ? "dot" : "dashdot",
+        },
+        opacity: 0.55 + 0.2 * i,
+        hoverinfo: "name+x+y",
+        name: `${d.date} issue`,
+        showlegend: false,
+      };
+    }).filter(Boolean);
+  }
+
+  function renderChart() {
+    const u = current;
+    const s = LATEST.units[u];
+    if (!s || !(s.points || []).length || !(s.published_demand_tail || []).length) {
+      $("chart").innerHTML =
+        `<div class="empty" style="padding:64px;text-align:center;color:var(--muted)">
+          No forecast available for ${u} yet — shown as soon as the champion has enough published history.</div>`;
+      return;
+    }
+    const traces = [...tracesFor(u), ...historyTraces(u)];
+    const mean48 = Math.round(s.points.reduce((a, p) => a + p.pred, 0) / s.points.length);
+    const through = s.data_through.replace(" ", "T").slice(0, 16) + "Z";
     const layout = {
-      paper_bgcolor: "#0d1117", plot_bgcolor: "#161b22",
-      font: { color: "#e6edf3" },
-      margin: { t: 30, r: 10, b: 40, l: 60 },
-      xaxis: { gridcolor: "#30363d" },
-      yaxis: { title: "MW", gridcolor: "#30363d", zerolinecolor: "#30363d" },
-      legend: { orientation: "h", y: -0.18 },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "#0d1117",
+      font: { family: "Inter, sans-serif", color: C.fg, size: 12 },
+      margin: { t: 8, r: 12, b: 36, l: 58 },
+      showlegend: false,
+      hovermode: "x unified",
+      xaxis: {
+        gridcolor: C.grid,
+        rangeslider: { visible: false },
+      },
+      yaxis: { title: "MW", gridcolor: C.grid, zerolinecolor: C.grid },
       annotations: [{
-        xref: "paper", yref: "paper", x: 0, y: 1.06, showarrow: false, xanchor: "left",
-        text: `${current} — ${u.market} · issued ${u.issue} · data through ${u.data_through}`,
-        font: { color: "#8b949e", size: 12 },
+        xref: "paper", yref: "paper", x: 0, y: -0.15, showarrow: false,
+        xanchor: "left", font: { color: C.muted, size: 11 },
+        text: `${u} — ${NAMES[u] || u} · issue ${s.issue.slice(0, 16).replace("T", " ")} UTC · data through ${through}`,
       }],
     };
     Plotly.react("chart", traces, layout, { responsive: true, displaylogo: false });
+    $("chart-meta").innerHTML =
+      `<b>${u}</b> · ${s.champion}${s.weights ? "" : ""} · horizon ${s.horizon_h}h ·
+       mean 48h forecast <b>${mean48.toLocaleString("en-GB")} MW</b><br>
+       <span title="models retrain on today's freshest published point">fit points ${s.n_fit_points.toLocaleString("en-GB")}</span>`;
+    $("chart-sub").textContent = SUBTEXT[u] || "";
   }
 
-  // ---------- metric cards ----------
-  const m = $("metrics");
-  for (const u of ordered) {
-    const it = metrics.units[u];
-    const div = document.createElement("div");
-    div.className = "metric-sm";
-    const champ = latest.units[u] ? latest.units[u].champion : "";
-    if (it) {
-      const delta = it.naive_value - it.champion_value;
-      const good = delta > 0;
-      div.innerHTML =
-        `<div class="k">${u} · ${it.champion_model}</div>` +
-        `<div class="v ${good ? "up" : "down"}">${it.champion_value.toFixed(2)} ${it.primary_metric.replace("_pct", "")}%</div>` +
-        `<div class="k">naive ${it.naive_value.toFixed(2)} · ${good ? "beats" : "ties"} by ${Math.abs(delta).toFixed(2)}</div>`;
-    } else {
-      div.innerHTML = `<div class="k">${u} · ${champ}</div><div class="v">soon</div><div class="k">first benchmark pending</div>`;
+  // ---------- boot ----------
+  async function boot() {
+    try {
+      const [latest, history, metrics] = await Promise.all([
+        fetchJSON("data/latest_forecasts.json"),
+        fetchJSON("data/forecast_history.json"),
+        fetchJSON("data/metrics.json").catch(() => ({ units: {} })),
+      ]);
+      LATEST = latest;
+      HISTORY = history;
+      METRICS = metrics;
+      if (!latest.units || !Object.keys(latest.units).length) {
+        throw new Error("latest_forecasts.json has no units (empty issue?)");
+      }
+      current = orderedFor(Object.keys(LATEST.units))[0];
+      const tasks = [renderHeader, renderKPIs, renderSegments, renderCards, renderChart];
+      for (const t of tasks) t();
+    } catch (e) {
+      failState(e);
     }
-    m.appendChild(div);
   }
 
-  render();
+  document.addEventListener("DOMContentLoaded", boot);
 })();

@@ -1,8 +1,9 @@
+# ruff: noqa: E501 (data-dictionary lines; keep prose intact on one line per entry)
 """Single source of truth for market-unit presentation metadata.
 
 The frontend renders every displayable market fact (names, countries,
 operators, caveats, timezones, cadences, publication lags, source links)
-from these fields — PROJECT_REBUILD_PLAN §3.1.1: nothing about markets
+from these fields - PROJECT_REBUILD_PLAN §3.1.1: nothing about markets
 lives in JavaScript constants. Changing a caveat here re-renders the site
 with no frontend edit.
 """
@@ -19,7 +20,7 @@ _UNIT_BASE = {
         operator="NESO",
         country_code="gb",
         source_link="https://data.neso.energy",
-        caveat="Operator actuals publish ~21 days late by design — the tail of the fact series always ends three weeks before today.",
+        caveat="Operator actuals publish ~21 days late by design - the tail of the fact series always ends three weeks before today.",
     ),
     "ALL": dict(
         display_name="Ireland (All-Island power system)",
@@ -29,42 +30,42 @@ _UNIT_BASE = {
         caveat="Northern Ireland co-modeled with the Republic of Ireland as one market. Small upstream null holes in the feed are documented.",
     ),
     "NEM_TOTAL": dict(
-        display_name="Australia — NEM total",
+        display_name="Australia - NEM total",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
         caveat="Sum of five regional loads at 5-minute dispatch cadence.",
     ),
     "NSW1": dict(
-        display_name="Australia — New South Wales",
+        display_name="Australia - New South Wales",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
         caveat="5-minute dispatch region series.",
     ),
     "QLD1": dict(
-        display_name="Australia — Queensland",
+        display_name="Australia - Queensland",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
         caveat="5-minute dispatch region series.",
     ),
     "SA1": dict(
-        display_name="Australia — South Australia",
+        display_name="Australia - South Australia",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
-        caveat="Operational demand dips below 0 MW at solar noon — sMAPE is the only honest ratio metric here.",
+        caveat="Operational demand dips below 0 MW at solar noon - sMAPE is the only honest ratio metric here.",
     ),
     "TAS1": dict(
-        display_name="Australia — Tasmania",
+        display_name="Australia - Tasmania",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
         caveat="Small-region volatility amplifies percentage metrics.",
     ),
     "VIC1": dict(
-        display_name="Australia — Victoria",
+        display_name="Australia - Victoria",
         operator="AEMO",
         country_code="au",
         source_link="https://aemo.com.au/aemo/data/nem/priceanddemand/",
@@ -89,28 +90,28 @@ _UNIT_BASE = {
         operator="Elia",
         country_code="be",
         source_link="https://opendata.elia.be",
-        caveat="Transmission offtake view — midday solar depressions are real physics, well below the MAPE floor.",
+        caveat="Transmission offtake view - midday solar depressions are real physics, well below the MAPE floor.",
     ),
     "DK": dict(
         display_name="Denmark",
         operator="Energinet",
         country_code="dk",
         source_link="https://api.energidataservice.dk",
-        caveat="Industry-settlement consumption publishes ~18 days late — this lag is the operator's design.",
+        caveat="Industry-settlement consumption publishes ~18 days late - this lag is the operator's design.",
     ),
     "KZ": dict(
-        display_name="Kazakhstan — North–South zone",
+        display_name="Kazakhstan - North-South zone",
         operator="KOREM",
         country_code="kz",
         source_link="https://portal.korem.kz",
-        caveat="Clearing-trade demand of centralized trades (~25–45% of physical consumption) — market-side volume, not physical grid load.",
+        caveat="Clearing-trade demand of centralized trades (~25-45% of physical consumption) - market-side volume, not physical grid load.",
     ),
     "KZ_W": dict(
-        display_name="Kazakhstan — West zone",
+        display_name="Kazakhstan - West zone",
         operator="KOREM",
         country_code="kz",
         source_link="https://portal.korem.kz",
-        caveat="Clearing-trade demand, West zone — trade-side volume, not physical grid load.",
+        caveat="Clearing-trade demand, West zone - trade-side volume, not physical grid load.",
     ),
 }
 

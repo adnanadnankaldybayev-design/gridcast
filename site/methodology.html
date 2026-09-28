@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridCast — methodology</title>
+<meta name="description" content="Data → features → models → protocol → intervals. Publication lags, model zoo, and every honest limitation of GridCast.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1117'/%3E%3Cpath d='M34 6 18 36h12l-4 22 20-34H34z' fill='%233fb950'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/gridcast.css">
+</head>
+<body>
+<nav class="topnav wrap" aria-label="Site">
+  <span class="brand-small"><svg class="mark-mini" viewBox="0 0 64 64" aria-hidden="true"><path d="M34 6 18 36h12l-4 22 20-34H34z" fill="#3fb950"/></svg><a href="index.html">GridCast</a></span>
+  <span class="navlinks">
+    <a href="dashboard.html">dashboard</a>
+    <a href="explorer.html">country explorer</a>
+    <a href="forecast.html">forecast</a>
+    <a href="methodology.html" aria-current="page">methodology</a>
+  </span>
+</nav>
+
+<header class="wrap board-head">
+  <h1>How GridCast works, end to end</h1>
+  <p class="note">The pipeline below is what actually runs — every number on this page is produced by the listed code paths and reports.</p>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>Pipeline</h2>
+    <div class="pipe-diagram" role="img" aria-label="Five-layer pipeline from operators to dashboard.">
+      <div class="pipe"><b>ingest</b><span>raw snapshots + month parquet</span></div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe"><b>features</b><span>calendar, weather, publication-safe lags</span></div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe"><b>models</b><span>naive · ridge · LightGBM · Chronos-Bolt · ensemble</span></div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe"><b>protocol</b><span>rolling-origin backtests with per-market publication lags; common anchor universe</span></div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe"><b>publish</b><span>champions retrained daily + conformal bands → site/data JSON → this site</span></div>
+    </div>
+    <table class="clean-table">
+      <thead><tr><th>operator (attribution)</th><th>market unit(s)</th><th>cadence</th><th>our publication lag</th></tr></thead>
+      <tbody id="src-table">
+        <tr><td colspan="4" class="note">loading units metadata from the published data bundle…</td></tr>
+      </tbody>
+    </table>
+    <noscript><p class="note">JavaScript is off — the source table lives at
+      <a href="data/latest_forecasts.json">data/latest_forecasts.json</a> (key <code>units_meta</code>).</p></noscript>
+  </section>
+
+  <section class="card">
+    <h2>Models and their roles</h2>
+    <table class="clean-table">
+      <thead><tr><th>model</th><th>role</th><th>strong on</th><th>known weakness</th></tr></thead>
+      <tbody>
+        <tr><td>seasonal-naive (168h)</td><td>baseline & ensemble member</td><td>stable, regular series; long-lag regimes (GB)</td><td>blind to weather and holidays</td></tr>
+        <tr><td>ridge</td><td>linear floor</td><td>thermal-linear response (Australia-NEM)</td><td>nonlinear ramps, holidays classes</td></tr>
+        <tr><td>LightGBM</td><td>champion on most units</td><td>nonlinear structure with publication-safe lags and weather</td><td>cold-snap overshoot via HDD; needs regular refits</td></tr>
+        <tr><td>Chronos-Bolt-mini (zero-shot)</td><td>evidence line for foundation models</td><td>stale-information market (GB) and rare-day slices</td><td>long AR horizons at fine cadence (measured openly)</td></tr>
+        <tr><td>inverse-MAE ensemble</td><td>production champion (GB/FR per current benchmark)</td><td>variance reduction across members</td><td>weights lag regime shifts (14-anchor window)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Publication lags — the context that makes this honest</h2>
+    <p>System operators do not publish on wall-clock time. The protocol treats
+    what was knowable at issue time as a first-class constraint:</p>
+    <ul class="facts">
+      <li>GB: definitive demand arrives ~21 days late; day-ahead forecast comparisons honor that vintage.</li>
+      <li>DK: industry settlement stabilizes after ~18 days.</li>
+      <li>All Australian regions, Ireland, France, Germany, Belgium, Kazakhstan trade zones: near real-time within hours.</li>
+      <li>Lags are not hyphens on a readme — models' lag features are market-lag-safe (GB uses 4- and 5-week lookbacks only).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Intervals, statistics, limitations</h2>
+    <ul class="facts">
+      <li>Rolling split-conformal (14-anchor calibration, nominal 80/90%). Where coverage dips — cold snaps, holidays — we print the failure (see benchmark card).</li>
+      <li>Diebold–Mariano with Newey-West HAC compares models pairwise; outputs include honest "no significant difference" rows.</li>
+      <li>Weather in backtests is archived reanalysis — a proxy for a perfect forecast; the weather-ablation table quantifies what a real NWP run could add.</li>
+      <li>Kazakhstan units are clearing-trade demand from KOREM (~25–45% of physical load), not physical grid load — separate headline, separate caveats.</li>
+    </ul>
+    <p class="links">
+      Reports: <a href="https://github.com/adnanadnankaldybayev-design/gridcast/blob/main/reports/BENCHMARK.md">BENCHMARK.md (card)</a> ·
+      <a href="https://github.com/adnanadnankaldybayev-design/gridcast">repository</a> ·
+      <a href="data/latest_forecasts.json">latest bundle (JSON)</a>
+    </p>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>GridCast · independent open benchmark · every figure on this page is traceable to a code path.</p>
+</footer>
+
+<script src="js/lib.js"></script>
+<script>
+(async () => {
+  const G = window.GC;
+  const tbody = document.getElementById("src-table");
+  try {
+    const latest = await G.fetchJSON("data/latest_forecasts.json");
+    const m = latest.units_meta || {};
+    const rows = Object.entries(m).map(([u, d]) => `
+      <tr><td>${d.operator}</td><td>${d.display_name} (${u})</td>
+      <td>${d.cadence_min} min</td><td>~${d.pub_lag_days} days</td></tr>`);
+    tbody.innerHTML = rows.join("");
+  } catch (e) {
+    tbody.innerHTML = "<tr><td colspan=4>data bundle download failed — methodology content above remains valid.</td></tr>";
+  }
+})();
+</script>
+</body>
+</html>

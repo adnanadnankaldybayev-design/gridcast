@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridCast — country explorer</title>
+<meta name="description" content="Per-market profile: operator, caveats, demand history, benchmark splits by horizon and month — read from data, not hardcoded.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1117'/%3E%3Cpath d='M34 6 18 36h12l-4 22 20-34H34z' fill='%233fb950'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous" charset="utf-8"></script>
+<link rel="stylesheet" href="css/gridcast.css">
+</head>
+<body>
+<nav class="topnav wrap" aria-label="Site">
+  <span class="brand-small"><svg class="mark-mini" viewBox="0 0 64 64" aria-hidden="true"><path d="M34 6 18 36h12l-4 22 20-34H34z" fill="#3fb950"/></svg><a href="index.html">GridCast</a></span>
+  <span class="navlinks">
+    <a href="dashboard.html">dashboard</a>
+    <a href="explorer.html" aria-current="page">country explorer</a>
+    <a href="forecast.html">forecast</a>
+    <a href="methodology.html">methodology</a>
+  </span>
+</nav>
+
+<header class="wrap board-head">
+  <h1>Country explorer</h1>
+  <p class="note">Pick a market — every profile fact comes from the published data bundle.</p>
+  <div class="segments" id="segments" role="tablist" aria-label="Market"></div>
+</header>
+
+<main class="wrap">
+  <section class="card profile" id="profile">
+    <div class="skeleton trust-skel"></div>
+  </section>
+  <section class="card">
+    <h2>Published demand — recent window</h2>
+    <div id="mini-chart" class="chart small" role="img" aria-label="Recent published demand for the selected market.">
+      <div class="skeleton chart-loading"></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Benchmark — champion vs naive</h2>
+    <div id="bench-content"></div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>GridCast · every displayable fact in this card ships inside the data bundle — edit a caveat in the publish layer and this page re-renders with no frontend change.</p>
+</footer>
+
+<script src="js/lib.js"></script>
+<script src="js/explorer.js"></script>
+</body>
+</html>
