@@ -268,6 +268,19 @@ compressed *cardinal-points* form (11 characteristic points per day with
 minute offsets + `FORECAST_TIMESTAMP` vintage), not half-hourly. Expanding it
 into a comparable series is E3 work for hypothesis H3, not a quick E1 add-on.
 
+## AI Analyst (optional LLM mode)
+
+Each daily run writes `site/data/ai_insights.json` next to the forecast bundle:
+headline of the day, champion-vs-naive rating, biggest upcoming miss and a
+rotating data fact. Deterministic by default ("statistical" badge on the site)
+— zero secrets needed.
+
+To enable the LLM voice instead: repo Settings → Secrets → Actions →
+`LLM_API_KEY` (+ optional `LLM_BASE_URL`, default OpenAI compatibility; the
+model is checked against our own numbers: anything it narratees must appear
+verbatim in the facts JSON — otherwise the pipeline silently falls back to the
+statistical digest. The badge on the page switches to `LLM · <model>`.
+
 ## License
 
 MIT — see `LICENSE`.
