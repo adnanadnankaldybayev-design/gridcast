@@ -50,12 +50,24 @@ def test_stale_limits_are_per_market():
 
 
 def test_health_main_exit_codes(tmp_path, capsys):
+    # main() reads the wall clock: ages must be relative to real now, else the
+    # test turns into a time bomb at the next boundary crossing (caught 2026-09-28)
+    now = datetime.now(UTC)
+
+    def fresh_snap(market, unit, age_days):
+        through = now - pd.Timedelta(days=age_days)
+        return {
+            "issue": now.isoformat(),
+            "units": {unit: {"market": market, "unit": unit, "data_through": through.isoformat()}},
+            "degraded": [],
+        }
+
     ok = tmp_path / "ok.json"
-    ok.write_text(json.dumps(_snap("GB", "GB", 22)))
+    ok.write_text(json.dumps(fresh_snap("GB", "GB", 22)))
     assert health_main([str(ok)]) == 0
 
     bad = tmp_path / "bad.json"
-    payload = _snap("IE", "ALL", 5)
+    payload = fresh_snap("IE", "ALL", 5)
     payload["degraded"] = [{"unit": "FR", "error": "boom"}]
     bad.write_text(json.dumps(payload))
     assert health_main([str(bad)]) == 1
