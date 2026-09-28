@@ -45,11 +45,15 @@
         .join(" ")} missed today's issue; those markets show their last valid day. Updated ${G.fmtWhen(latest.generated_at)}`;
   } else {
     bannerEl.className = "banner ok";
-    const sha = latest.generated_by && latest.generated_by.git_sha ? latest.generated_by.git_sha.slice(0, 7) : "?";
+    const gb2 = latest.generated_by || {};
+    const sha = gb2.git_sha ? gb2.git_sha.slice(0, 7) : "?";
+    const dirty = gb2.git_dirty
+      ? ` <span class="badge" title="tree was dirty when this bundle was written — sha does not fully pin the writer code">dirty tree</span>`
+      : "";
     bannerEl.innerHTML =
       `<b style="color:var(--green)">healthy</b> — all ${units.length} units issued at ${G.fmtWhen(
         latest.generated_at
-      )} · code <span title="git sha of the writer">${sha}</span>`;
+      )} · code <span title="git sha of the writer">${sha}</span>${dirty}`;
   }
 
   function renderSegments() {
@@ -69,12 +73,14 @@
   function renderChart() {
     const snap = latest.units[current];
     if (!snap) return;
-    const traces = [
-      G.demandTrace(snap),
-      ...G.intervalTraces(snap),
-      ...G.historyTraces(history ? history.days : [], current),
-    ];
-    Plotly.react(chartEl, traces, G.plotlyTheme(), { responsive: true, displaylogo: false });
+    if (G.plotlyOrFail(chartEl)) {
+      const traces = [
+        G.demandTrace(snap),
+        ...G.intervalTraces(snap),
+        ...G.historyTraces(history ? history.days : [], current),
+      ];
+      Plotly.react(chartEl, traces, G.plotlyTheme(), { responsive: true, displaylogo: false });
+    }
     const m = metrics.units[current];
     const meta = unitsMeta[current] || {};
     const pair = m

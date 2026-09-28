@@ -107,6 +107,23 @@ window.GC = (() => {
       <path d="${d} L${pts[pts.length - 1][0]},${h} L${pts[0][0]},${h} Z" fill="${stroke}" opacity="0.08" stroke="none"/></svg>`;
   }
 
+  function plotlyAvailable() {
+    return typeof window.Plotly !== "undefined";
+  }
+
+  function plotlyOrFail(el) {
+    /* Called before every Plotly.react. With the CDN blocked/offline the
+     * generic undefined-symbol crash otherwise leaves silently blank chart
+     * areas — show the designed degrade state instead. */
+    if (plotlyAvailable()) return true;
+    failState(
+      el,
+      "chart engine (cdn.plot.ly) unreachable — text below still works",
+      () => location.reload()
+    );
+    return false;
+  }
+
   // ---- data primitives ----
   function orderUnits(units, unitsMeta) {
     const restSortOrder = (a, b) =>
@@ -120,6 +137,8 @@ window.GC = (() => {
   function segFor(unit, meta, current, onPick) {
     const b = document.createElement("button");
     b.className = "seg";
+    // parents use role="tablist"; aria-selected is only valid on role="tab"
+    b.setAttribute("role", "tab");
     b.setAttribute("aria-selected", unit === current);
     const flagEl = document.createElement("span");
     flagEl.className = "fl";
@@ -207,6 +226,8 @@ window.GC = (() => {
     fmtEnergy,
     fmtWhen,
     plotlyTheme,
+    plotlyAvailable,
+    plotlyOrFail,
     sparkline,
     orderUnits,
     segFor,

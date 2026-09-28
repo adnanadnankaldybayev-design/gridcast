@@ -76,12 +76,13 @@
       G.emptyState(miniChartEl, "No snapshot for this unit yet.");
       return;
     }
+    if (!G.plotlyOrFail(miniChartEl)) return;
     const traces = [G.demandTrace(snap), ...G.intervalTraces(snap)];
     const layout = G.plotlyTheme();
     layout.margin = { t: 20, r: 10, b: 20, l: 52 };
     layout.annotations = [{
       xref: "paper", yref: "paper", x: 0.01, y: 0.99, xanchor: "left", showarrow: false,
-      text: "actual + 48h forecast", font: { color: layout ? "#8b949e" : "#8b949e", size: 11 },
+      text: "actual + 48h forecast", font: { color: "#8b949e", size: 11 },
     }];
     Plotly.react(miniChartEl, traces, layout, { responsive: true, displaylogo: false });
   }

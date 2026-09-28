@@ -94,8 +94,9 @@ def test_contract_v2_units_meta_and_generated_by(tmp_path, stub_weather):
         snapshots_dir=tmp_path / "sn",
     )
     gb = latest["generated_by"]
-    assert set(gb) == {"git_sha", "gridcast_version"}
+    assert set(gb) == {"git_sha", "git_dirty", "gridcast_version"}
     assert isinstance(gb["git_sha"], str) and len(gb["git_sha"]) >= 6
+    assert isinstance(gb["git_dirty"], bool)  # exposed, not silently dropped
     meta = latest["units_meta"]
     assert set(meta) == {"GB", "FR"}
     for unit in ("GB", "FR"):

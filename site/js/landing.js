@@ -24,6 +24,14 @@
 
   const units = Object.keys(latest.units);
   const unitsMeta = latest.units_meta || {};
+  if (!units.length) {
+    // first daily run pending: designed empty state, never a crash
+    G.emptyState(chartEl, "No forecast issued yet — the first daily run is pending.");
+    kpisEl.innerHTML = "";
+    G.emptyState(gridEl, "Market cards appear with the first issued bundle.");
+    trustEl.innerHTML = "";
+    return;
+  }
   const ordered = G.orderUnits(units, unitsMeta);
   const heroUnit = ordered[0];
   const heroSnap = latest.units[heroUnit];
@@ -37,6 +45,9 @@
     { k: "book SHA", v: (by.git_sha || "?").slice(0, 7), title: "git sha of the code that wrote this data" },
     { k: "data through", v: (heroSnap.data_through || "").slice(0, 10), title: "freshest operator-published actual for the hero market" },
   ];
+  if (by.git_dirty) {
+    chips.push({ k: "writer tree", v: "dirty", title: "bundle written from a dirty tree — sha does not fully pin the code" });
+  }
   for (const c of chips) {
     const el = document.createElement("span");
     el.className = "trust-chip";
@@ -47,11 +58,13 @@
 
   // ---- hero chart ----
   chartEl.innerHTML = "";
-  const traces = [G.demandTrace(heroSnap), ...G.intervalTraces(heroSnap), ...G.historyTraces(history ? history.days : [], heroUnit)];
-  const layout = G.plotlyTheme();
-  layout.yaxis.title = "MW";
-  layout.margin = { t: 26, r: 10, b: 30, l: 52 };
-  Plotly.react(chartEl, traces, layout, { responsive: true, displaylogo: false });
+  if (G.plotlyOrFail(chartEl)) {
+    const traces = [G.demandTrace(heroSnap), ...G.intervalTraces(heroSnap), ...G.historyTraces(history ? history.days : [], heroUnit)];
+    const layout = G.plotlyTheme();
+    layout.yaxis.title = "MW";
+    layout.margin = { t: 26, r: 10, b: 30, l: 52 };
+    Plotly.react(chartEl, traces, layout, { responsive: true, displaylogo: false });
+  }
 
   // ---- KPI tiles ----
   const championVals = Object.entries(metrics.units).map(([u, m]) => [u, m]);
@@ -59,7 +72,11 @@
   for (const [u, m] of championVals) {
     if (best === null || m.champion_value < best[1].champion_value) best = [u, m];
   }
-  const countries = new Set(Object.values(latest.units).map((s) => s.market)).size;
+  // country count from units_meta (zones share a country_code) — no
+  // geography claims the data bundle does not itself carry
+  const countries = new Set(
+    Object.values(unitsMeta).map((m) => m.country_code).filter(Boolean)
+  ).size;
   const points = Object.values(latest.units).reduce((a, s) => a + (s.n_fit_points || 0), 0);
   const streak = (history && history.days ? history.days.length : 0);
   const tiles = [
@@ -68,7 +85,7 @@
       cap: `best measured accuracy — ${unitsMeta[best[0]] ? unitsMeta[best[0]].display_name : best[0]} (${best[1].primary_metric.replace("_pct", "")})`,
     },
     { num: `${units.length}`, cap: "market units forecast daily" },
-    { num: `${countries}`, cap: "countries on 4 continents" },
+    { num: `${countries}`, cap: "countries/regions served by open operators" },
     { num: `${G.fmtInt(Math.round(points / 1000))}k`, cap: `fit points today · ${streak} days straight` },
   ].filter(Boolean);
   kpisEl.innerHTML = "";

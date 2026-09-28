@@ -44,10 +44,12 @@
 
   function renderChart() {
     const snap = latest.units[current];
-    const traces = [...G.intervalTraces(snap), ...G.historyTraces(history ? history.days : [], current)];
-    const layout = G.plotlyTheme();
-    layout.yaxis.title = "MW";
-    Plotly.react(chartEl, traces, layout, { responsive: true, displaylogo: false });
+    if (G.plotlyOrFail(chartEl)) {
+      const traces = [...G.intervalTraces(snap), ...G.historyTraces(history ? history.days : [], current)];
+      const layout = G.plotlyTheme();
+      layout.yaxis.title = "MW";
+      Plotly.react(chartEl, traces, layout, { responsive: true, displaylogo: false });
+    }
     const meta = unitsMeta[current] || {};
     const w = snap.weights
       ? ` · weights ${Object.entries(snap.weights)
@@ -101,6 +103,7 @@
       return;
     }
     allErr.sort((a, b) => a.t.localeCompare(b.t));
+    if (!G.plotlyOrFail(backcastEl)) return;
     const trace = {
       x: allErr.map((r) => r.t),
       y: allErr.map((r) => r.err),

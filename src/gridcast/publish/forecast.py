@@ -278,11 +278,14 @@ def run_forecast(
     from gridcast.eval.backtest import git_state as _gs
     from gridcast.publish.units_meta import UNITS_META
 
+    writer_state = _gs(REPO_ROOT)
     latest = {
         "generated_at": generated,
         "generated_by": {
-            # provenance of the writer itself; clean-tree policy keeps it true
-            "git_sha": _gs(REPO_ROOT)["git_sha"],
+            # provenance of the writer itself; git_dirty exposed so the banner
+            # chip cannot overclaim reproducibility (no clean-tree guard here)
+            "git_sha": writer_state["git_sha"],
+            "git_dirty": writer_state["git_dirty"],
             "gridcast_version": __import__("gridcast").__version__,
         },
         "issue": issue.isoformat(),
@@ -336,6 +339,7 @@ def _write_metrics(path: Path, generated: str, snapshots: dict) -> None:
         "generated_by": {
             **({"git_sha": bench.get("code", {}).get("git_sha")} if bench.get("code") else {}),
             "writer_git_sha": _gs(REPO_ROOT)["git_sha"],
+            "writer_git_dirty": _gs(REPO_ROOT)["git_dirty"],
         },
         "units": units,
         "units_meta": {u: UNITS_META[u] for u in units if u in UNITS_META},
