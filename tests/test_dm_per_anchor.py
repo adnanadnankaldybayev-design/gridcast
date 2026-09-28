@@ -4,7 +4,6 @@ Aggregating mean|e| to one observation per issue day removes the overlap
 boost of the per-point form; both behaviours are pinned here.
 """
 
-import pandas as pd
 import pytest
 
 from gridcast.eval.dm import aggregate_absolute_errors, dm_test, dm_test_per_anchor
