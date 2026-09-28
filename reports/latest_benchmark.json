@@ -233862,10 +233862,10 @@
       }
     }
   },
-  "generated_at": "2026-09-28T16:36:16+00:00",
+  "generated_at": "2026-09-28T17:00:03+00:00",
   "code": {
     "gridcast_version": "0.1.0",
-    "git_sha": "077bfd5",
-    "git_dirty": true
+    "git_sha": "0910178",
+    "git_dirty": false
   }
 }
