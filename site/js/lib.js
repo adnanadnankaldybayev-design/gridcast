@@ -126,11 +126,13 @@ window.GC = (() => {
 
   // ---- data primitives ----
   function orderUnits(units, unitsMeta) {
+    // `withMeta` rows are [unit, meta] pairs — sort them directly (a mistaken
+    // spread-based comparator crashed every data page on load, caught in review)
     const restSortOrder = (a, b) =>
-      (a.country_code + a.display_name).localeCompare(b.country_code + b.display_name);
+      (a[1].country_code + a[1].display_name).localeCompare(b[1].country_code + b[1].display_name);
     const withMeta = units.map((u) => [u, unitsMeta[u]]).filter(([, m]) => m);
-    const kzs = withMeta.filter(([, m]) => m.country_code === "kz").sort((a, b) => restSortOrder(...a, ...b));
-    const rest = withMeta.filter(([, m]) => m.country_code !== "kz").sort((a, b) => restSortOrder(...a, ...b));
+    const kzs = withMeta.filter(([, m]) => m.country_code === "kz").sort(restSortOrder);
+    const rest = withMeta.filter(([, m]) => m.country_code !== "kz").sort(restSortOrder);
     return kzs.concat(rest).map(([u]) => u);
   }
 

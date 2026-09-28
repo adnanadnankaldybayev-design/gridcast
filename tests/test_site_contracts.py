@@ -54,3 +54,35 @@ def test_hero_aria_label_is_generic():
     html = (SITE / "index.html").read_text(encoding="utf-8")
     assert 'aria-label="Live forecast chart for Kazakhstan trade zone"' not in html
     assert 'role="img"' in html
+
+
+def test_order_units_runs_clean_under_node():
+    """orderUnits crashed every data page at load (spread comparator calling
+    .localeCompare on NaN) — regression pinned by executing the real function."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("node"):
+        import pytest
+
+        pytest.skip("node not installed in this environment")
+    script = (
+        'const src = require("fs").readFileSync(process.argv[1], "utf8");'
+        'const window = {}; eval(src);'
+        'const meta = {'
+        'IE: {country_code: "ie", display_name: "Ireland", flag: "x"},'
+        'KZ: {country_code: "kz", display_name: "KZ North-South", flag: "x"},'
+        'KZ_W: {country_code: "kz", display_name: "KZ West", flag: "x"},'
+        'GB: {country_code: "gb", display_name: "Britain", flag: "x"}};'
+        'const out = window.GC.orderUnits(Object.keys(meta), meta);'
+        'if (out.join(",") !== "KZ,KZ_W,GB,IE") {'
+        '  console.error("BAD ORDER: " + out.join(",")); process.exit(1);'
+        '}'
+    )
+    proc = subprocess.run(
+        ["node", "-e", script, str(SITE / "js" / "lib.js")],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode == 0, (proc.stdout, proc.stderr)
