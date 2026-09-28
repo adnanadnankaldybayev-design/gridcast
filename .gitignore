@@ -24,6 +24,9 @@ reports/*
 !reports/BENCHMARK.md
 !reports/.gitkeep
 
+# Node (site smoke deps)
+node_modules/
+
 # OS / editors
 .DS_Store
 Thumbs.db

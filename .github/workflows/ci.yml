@@ -19,3 +19,16 @@ jobs:
         run: ruff check .
       - name: Pytest
         run: pytest
+
+  site-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install jsdom
+        run: npm ci
+      - name: jsdom smoke over the 5 data pages
+        run: npm run smoke

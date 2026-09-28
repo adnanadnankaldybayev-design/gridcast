@@ -168,66 +168,68 @@ chronos-bolt-zero-shot   36.1003 115.988
 
 ## Diebold-Mariano (two-sided, HAC Newey-West)
 
-| pair | mean loss diff | DM | p | verdict |
-|---|---|---|---|---|
-| GB/GB: lightgbm-weather__vs__seasonal-naive-168h | -193.649092 | -1.7245 | 0.084612 | NOT significant |
-| GB/GB: lightgbm-weather__vs__ridge-weather | -785.0332 | -5.2185 | 0.0 | significant |
-| GB/GB: lightgbm-weather__vs__chronos-bolt-zero-shot | -126.00635 | -1.0642 | 0.287226 | NOT significant |
-| GB/GB: ensemble-inv-mae-14__vs__lightgbm-weather | -217.531799 | -3.1606 | 0.001574 | significant |
-| IE/ALL: lightgbm-weather__vs__seasonal-naive-168h | -14.414628 | -2.0815 | 0.037384 | significant |
-| IE/ALL: lightgbm-weather__vs__ridge-weather | -19.357234 | -2.7794 | 0.005445 | significant |
-| IE/ALL: lightgbm-weather__vs__chronos-bolt-zero-shot | -479.499182 | -25.1467 | 0.0 | significant |
-| IE/ALL: ensemble-inv-mae-14__vs__lightgbm-weather | 12.746703 | 2.2577 | 0.023962 | significant |
-| AU/NSW1: lightgbm-weather__vs__seasonal-naive-168h | -33.82605 | -2.0149 | 0.043919 | significant |
-| AU/NSW1: lightgbm-weather__vs__ridge-weather | -16.72404 | -1.1835 | 0.236599 | NOT significant |
-| AU/NSW1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1081.22481 | -27.2046 | 0.0 | significant |
-| AU/NSW1: ensemble-inv-mae-14__vs__lightgbm-weather | 1.886479 | 0.1791 | 0.857833 | NOT significant |
-| AU/QLD1: lightgbm-weather__vs__seasonal-naive-168h | -83.132625 | -8.0272 | 0.0 | significant |
-| AU/QLD1: lightgbm-weather__vs__ridge-weather | -62.829157 | -8.4087 | 0.0 | significant |
-| AU/QLD1: lightgbm-weather__vs__chronos-bolt-zero-shot | -1122.091026 | -33.5078 | 0.0 | significant |
-| AU/QLD1: ensemble-inv-mae-14__vs__lightgbm-weather | 53.269877 | 7.5932 | 0.0 | significant |
-| AU/SA1: lightgbm-weather__vs__seasonal-naive-168h | -35.41752 | -5.6106 | 0.0 | significant |
-| AU/SA1: lightgbm-weather__vs__ridge-weather | -26.441216 | -5.7664 | 0.0 | significant |
-| AU/SA1: lightgbm-weather__vs__chronos-bolt-zero-shot | -257.895049 | -21.0176 | 0.0 | significant |
-| AU/SA1: ensemble-inv-mae-14__vs__lightgbm-weather | 15.588437 | 4.851 | 1e-06 | significant |
-| AU/TAS1: lightgbm-weather__vs__seasonal-naive-168h | -16.343798 | -7.2284 | 0.0 | significant |
-| AU/TAS1: lightgbm-weather__vs__ridge-weather | 0.527811 | 0.2704 | 0.78688 | NOT significant |
-| AU/TAS1: lightgbm-weather__vs__chronos-bolt-zero-shot | -90.434398 | -25.0201 | 0.0 | significant |
-| AU/TAS1: ensemble-inv-mae-14__vs__ridge-weather | -1.039578 | -0.7754 | 0.438117 | NOT significant |
-| AU/VIC1: lightgbm-weather__vs__seasonal-naive-168h | -113.574248 | -7.2155 | 0.0 | significant |
-| AU/VIC1: lightgbm-weather__vs__ridge-weather | 31.955798 | 2.6491 | 0.008071 | significant |
-| AU/VIC1: lightgbm-weather__vs__chronos-bolt-zero-shot | -772.084732 | -26.9878 | 0.0 | significant |
-| AU/VIC1: ensemble-inv-mae-14__vs__ridge-weather | 28.471539 | 3.2808 | 0.001035 | significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__seasonal-naive-168h | -5.283633 | -0.1706 | 0.864512 | NOT significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__ridge-weather | 68.209138 | 2.485 | 0.012955 | significant |
-| AU/NEM_TOTAL: lightgbm-weather__vs__chronos-bolt-zero-shot | -3493.298651 | -32.5268 | 0.0 | significant |
-| AU/NEM_TOTAL: ensemble-inv-mae-14__vs__ridge-weather | 54.254795 | 2.2828 | 0.022442 | significant |
-| FR/FR: lightgbm-weather__vs__seasonal-naive-168h | -124.012295 | -1.0176 | 0.308888 | NOT significant |
-| FR/FR: lightgbm-weather__vs__ridge-weather | -359.265091 | -2.8611 | 0.004221 | significant |
-| FR/FR: lightgbm-weather__vs__chronos-bolt-zero-shot | -1853.192417 | -8.8707 | 0.0 | significant |
-| FR/FR: ensemble-inv-mae-14__vs__lightgbm-weather | -258.216661 | -3.2211 | 0.001277 | significant |
-| DE/DE: lightgbm-weather__vs__seasonal-naive-168h | -800.655132 | -4.9405 | 1e-06 | significant |
-| DE/DE: lightgbm-weather__vs__ridge-weather | -256.524506 | -2.6752 | 0.007469 | significant |
-| DE/DE: lightgbm-weather__vs__chronos-bolt-zero-shot | -2656.1881 | -11.8637 | 0.0 | significant |
-| DE/DE: ensemble-inv-mae-14__vs__lightgbm-weather | -6.016554 | -0.0763 | 0.939211 | NOT significant |
-| BE/BE: lightgbm-weather__vs__seasonal-naive-168h | -372.694428 | -8.4449 | 0.0 | significant |
-| BE/BE: lightgbm-weather__vs__ridge-weather | -229.636786 | -4.256 | 2.1e-05 | significant |
-| BE/BE: lightgbm-weather__vs__chronos-bolt-zero-shot | -1279.188498 | -19.2915 | 0.0 | significant |
-| BE/BE: ensemble-inv-mae-14__vs__lightgbm-weather | 121.733396 | 4.9588 | 1e-06 | significant |
-| DK/DK: lightgbm-weather__vs__seasonal-naive-168h | 84.865776 | 3.0709 | 0.002134 | significant |
-| DK/DK: lightgbm-weather__vs__ridge-weather | -67.210521 | -1.9798 | 0.04773 | significant |
-| DK/DK: lightgbm-weather__vs__chronos-bolt-zero-shot | 25.257028 | 0.7638 | 0.44497 | NOT significant |
-| DK/DK: ensemble-inv-mae-14__vs__seasonal-naive-168h | 6.323138 | 0.5027 | 0.615154 | NOT significant |
-| KZ/KZ: lightgbm-weather__vs__seasonal-naive-168h | 95.128189 | 4.4205 | 1e-05 | significant |
-| KZ/KZ: lightgbm-weather__vs__ridge-weather | 90.19478 | 4.3192 | 1.6e-05 | significant |
-| KZ/KZ: lightgbm-weather__vs__chronos-bolt-zero-shot | -647.86654 | -15.9553 | 0.0 | significant |
-| KZ/KZ: ensemble-inv-mae-14__vs__seasonal-naive-168h | 7.744604 | 0.5673 | 0.570484 | NOT significant |
-| KZ/KZ_W: lightgbm-weather__vs__seasonal-naive-168h | 12.143969 | 4.1639 | 3.1e-05 | significant |
-| KZ/KZ_W: lightgbm-weather__vs__ridge-weather | 10.593351 | 4.0019 | 6.3e-05 | significant |
-| KZ/KZ_W: lightgbm-weather__vs__chronos-bolt-zero-shot | -55.51383 | -12.8937 | 0.0 | significant |
-| KZ/KZ_W: ensemble-inv-mae-14__vs__seasonal-naive-168h | 1.188713 | 0.702 | 0.482657 | NOT significant |
+Two variants reported side by side: per-point (all horizon points, overlapping 48h) and the conservative per-anchor form (mean|e| aggregated one observation per issue day). Claims that survive only the per-point bar are flagged honestly.
 
-Reading: mean_loss_diff > 0 => the first model named has HIGHER loss (worse). Pairs with NOT significant differences are honest non-conclusions, not ties to hide.
+| pair | pointwise p | per-anchor p | verdict |
+|---|---|---|---|
+| GB/GB: lightgbm-weather__vs__seasonal-naive-168h | 0.084612 | 0.318502 | NOT significant |
+| GB/GB: lightgbm-weather__vs__ridge-weather | 0.0 | 0.0069 | significant (both forms) |
+| GB/GB: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.287226 | 0.624721 | NOT significant |
+| GB/GB: ensemble-inv-mae-14__vs__lightgbm-weather | 0.001574 | 0.218911 | ONLY per-point — loses significance at anchor level |
+| IE/ALL: lightgbm-weather__vs__seasonal-naive-168h | 0.037384 | 0.165172 | ONLY per-point — loses significance at anchor level |
+| IE/ALL: lightgbm-weather__vs__ridge-weather | 0.005445 | 0.104857 | ONLY per-point — loses significance at anchor level |
+| IE/ALL: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| IE/ALL: ensemble-inv-mae-14__vs__lightgbm-weather | 0.023962 | 0.039642 | significant (both forms) |
+| AU/NSW1: lightgbm-weather__vs__seasonal-naive-168h | 0.043919 | 0.381649 | ONLY per-point — loses significance at anchor level |
+| AU/NSW1: lightgbm-weather__vs__ridge-weather | 0.236599 | 0.586673 | NOT significant |
+| AU/NSW1: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/NSW1: ensemble-inv-mae-14__vs__lightgbm-weather | 0.857833 | 0.933472 | NOT significant |
+| AU/QLD1: lightgbm-weather__vs__seasonal-naive-168h | 0.0 | 1e-05 | significant (both forms) |
+| AU/QLD1: lightgbm-weather__vs__ridge-weather | 0.0 | 0.0 | significant (both forms) |
+| AU/QLD1: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/QLD1: ensemble-inv-mae-14__vs__lightgbm-weather | 0.0 | 0.001108 | significant (both forms) |
+| AU/SA1: lightgbm-weather__vs__seasonal-naive-168h | 0.0 | 0.000474 | significant (both forms) |
+| AU/SA1: lightgbm-weather__vs__ridge-weather | 0.0 | 0.011426 | significant (both forms) |
+| AU/SA1: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/SA1: ensemble-inv-mae-14__vs__lightgbm-weather | 1e-06 | 0.017283 | significant (both forms) |
+| AU/TAS1: lightgbm-weather__vs__seasonal-naive-168h | 0.0 | 0.064239 | ONLY per-point — loses significance at anchor level |
+| AU/TAS1: lightgbm-weather__vs__ridge-weather | 0.78688 | 0.899931 | NOT significant |
+| AU/TAS1: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/TAS1: ensemble-inv-mae-14__vs__ridge-weather | 0.438117 | 0.658344 | NOT significant |
+| AU/VIC1: lightgbm-weather__vs__seasonal-naive-168h | 0.0 | 0.020083 | significant (both forms) |
+| AU/VIC1: lightgbm-weather__vs__ridge-weather | 0.008071 | 0.423807 | ONLY per-point — loses significance at anchor level |
+| AU/VIC1: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/VIC1: ensemble-inv-mae-14__vs__ridge-weather | 0.001035 | 0.185992 | ONLY per-point — loses significance at anchor level |
+| AU/NEM_TOTAL: lightgbm-weather__vs__seasonal-naive-168h | 0.864512 | 0.958221 | NOT significant |
+| AU/NEM_TOTAL: lightgbm-weather__vs__ridge-weather | 0.012955 | 0.342524 | ONLY per-point — loses significance at anchor level |
+| AU/NEM_TOTAL: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| AU/NEM_TOTAL: ensemble-inv-mae-14__vs__ridge-weather | 0.022442 | 0.233715 | ONLY per-point — loses significance at anchor level |
+| FR/FR: lightgbm-weather__vs__seasonal-naive-168h | 0.308888 | 0.820088 | NOT significant |
+| FR/FR: lightgbm-weather__vs__ridge-weather | 0.004221 | 0.083889 | ONLY per-point — loses significance at anchor level |
+| FR/FR: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.00064 | significant (both forms) |
+| FR/FR: ensemble-inv-mae-14__vs__lightgbm-weather | 0.001277 | 0.157864 | ONLY per-point — loses significance at anchor level |
+| DE/DE: lightgbm-weather__vs__seasonal-naive-168h | 1e-06 | 0.089848 | ONLY per-point — loses significance at anchor level |
+| DE/DE: lightgbm-weather__vs__ridge-weather | 0.007469 | 0.179347 | ONLY per-point — loses significance at anchor level |
+| DE/DE: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 3e-06 | significant (both forms) |
+| DE/DE: ensemble-inv-mae-14__vs__lightgbm-weather | 0.939211 | 0.974206 | NOT significant |
+| BE/BE: lightgbm-weather__vs__seasonal-naive-168h | 0.0 | 0.0 | significant (both forms) |
+| BE/BE: lightgbm-weather__vs__ridge-weather | 2.1e-05 | 0.000381 | significant (both forms) |
+| BE/BE: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| BE/BE: ensemble-inv-mae-14__vs__lightgbm-weather | 1e-06 | 1e-06 | significant (both forms) |
+| DK/DK: lightgbm-weather__vs__seasonal-naive-168h | 0.002134 | 0.167626 | ONLY per-point — loses significance at anchor level |
+| DK/DK: lightgbm-weather__vs__ridge-weather | 0.04773 | 0.421207 | ONLY per-point — loses significance at anchor level |
+| DK/DK: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.44497 | 0.775008 | NOT significant |
+| DK/DK: ensemble-inv-mae-14__vs__seasonal-naive-168h | 0.615154 | 0.725184 | NOT significant |
+| KZ/KZ: lightgbm-weather__vs__seasonal-naive-168h | 1e-05 | 0.011716 | significant (both forms) |
+| KZ/KZ: lightgbm-weather__vs__ridge-weather | 1.6e-05 | 0.025565 | significant (both forms) |
+| KZ/KZ: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| KZ/KZ: ensemble-inv-mae-14__vs__seasonal-naive-168h | 0.570484 | 0.672659 | NOT significant |
+| KZ/KZ_W: lightgbm-weather__vs__seasonal-naive-168h | 3.1e-05 | 0.06776 | ONLY per-point — loses significance at anchor level |
+| KZ/KZ_W: lightgbm-weather__vs__ridge-weather | 6.3e-05 | 0.034759 | significant (both forms) |
+| KZ/KZ_W: lightgbm-weather__vs__chronos-bolt-zero-shot | 0.0 | 0.0 | significant (both forms) |
+| KZ/KZ_W: ensemble-inv-mae-14__vs__seasonal-naive-168h | 0.482657 | 0.629912 | NOT significant |
+
+Reading: smaller p -> stronger difference. 'ONLY per-point' means the 48h-overlap inflated the claim; treat those as inconclusive honestly.
 
 ## Conformal intervals (rolling split-conformal, calib 14 anchors)
 
@@ -398,7 +400,7 @@ Reading: mean_loss_diff > 0 => the first model named has HIGHER loss (worse). Pa
 
 - 48h horizon coverage relies on a rolling 14-anchor split-conformal; regime shifts (heat waves, price events) temporarily decalibrate it.
 - Chronos-Bolt-mini is evaluated natively at market cadence; its long-horizon weakness at 5/15 min is a known zero-shot limit, not a data bug.
-- DM tests use Newey-West conservative variance; with overlapping 48h forecast errors, serial correlation beyond the lag may inflate significance.
+- DM tests shown in two forms: per-point (overlapping-horizon, anti-conservative) and per-anchor aggregation (conservative). Claims surviving only the first form are explicitly marked 'ONLY per-point' and treated as inconclusive.
 - GB's 21-day publication arrears means GBM/foundation share a stale-information handicap; conclusions do not transfer to markets with real-time metering.
 - Weather is archival reanalysis (perfect-forecast proxy); live NWP forecasts will add error the ablation bounds only partially.
 

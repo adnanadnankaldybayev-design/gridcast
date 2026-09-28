@@ -5251,6 +5251,44 @@
           "hac_var_mean": 4736.965241897015
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 22,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -193.649092,
+          "dm_stat": -0.9975,
+          "p_value_two_sided": 0.318502,
+          "hac_var_mean": 37685.08049274974
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 22,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -785.0332,
+          "dm_stat": -2.7016,
+          "p_value_two_sided": 0.0069,
+          "hac_var_mean": 84436.58664057594
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 22,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -126.00635,
+          "dm_stat": -0.4892,
+          "p_value_two_sided": 0.624721,
+          "hac_var_mean": 66353.40788857099
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 22,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -217.531799,
+          "dm_stat": -1.2294,
+          "p_value_two_sided": 0.218911,
+          "hac_var_mean": 31306.854744930544
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -15579,6 +15617,44 @@
           "dm_stat": 2.2577,
           "p_value_two_sided": 0.023962,
           "hac_var_mean": 31.874764359486313
+        }
+      },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -14.414628,
+          "dm_stat": -1.3879,
+          "p_value_two_sided": 0.165172,
+          "hac_var_mean": 107.86975109116696
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -19.357234,
+          "dm_stat": -1.6217,
+          "p_value_two_sided": 0.104857,
+          "hac_var_mean": 142.4686006150032
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -479.499182,
+          "dm_stat": -20.833,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 529.7533911076829
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 12.746703,
+          "dm_stat": 2.0575,
+          "p_value_two_sided": 0.039642,
+          "hac_var_mean": 38.38228253792361
         }
       },
       "conformal": {
@@ -45111,6 +45187,44 @@
           "hac_var_mean": 110.90563913050818
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -33.82605,
+          "dm_stat": -0.8749,
+          "p_value_two_sided": 0.381649,
+          "hac_var_mean": 1494.9397232082651
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -16.72404,
+          "dm_stat": -0.5437,
+          "p_value_two_sided": 0.586673,
+          "hac_var_mean": 946.2853130675976
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -1081.22481,
+          "dm_stat": -11.5912,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 8701.11525724902
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 1.886479,
+          "dm_stat": 0.0835,
+          "p_value_two_sided": 0.933472,
+          "hac_var_mean": 510.69916813196653
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -74639,6 +74753,44 @@
           "dm_stat": 7.5932,
           "p_value_two_sided": 0.0,
           "hac_var_mean": 49.21694148555948
+        }
+      },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -83.132625,
+          "dm_stat": -4.4242,
+          "p_value_two_sided": 1e-05,
+          "hac_var_mean": 353.0870158144748
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -62.829157,
+          "dm_stat": -6.3473,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 97.98238115457221
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -1122.091026,
+          "dm_stat": -19.3794,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 3352.5556737788747
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 53.269877,
+          "dm_stat": 3.2615,
+          "p_value_two_sided": 0.001108,
+          "hac_var_mean": 266.7588683014824
         }
       },
       "conformal": {
@@ -104171,6 +104323,44 @@
           "hac_var_mean": 10.326402549575622
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -35.41752,
+          "dm_stat": -3.4952,
+          "p_value_two_sided": 0.000474,
+          "hac_var_mean": 102.68120272699669
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -26.441216,
+          "dm_stat": -2.5294,
+          "p_value_two_sided": 0.011426,
+          "hac_var_mean": 109.2767705074437
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -257.895049,
+          "dm_stat": -8.6856,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 881.6204107449964
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 15.588437,
+          "dm_stat": 2.3806,
+          "p_value_two_sided": 0.017283,
+          "hac_var_mean": 42.87655008680231
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -133699,6 +133889,44 @@
           "dm_stat": -0.7754,
           "p_value_two_sided": 0.438117,
           "hac_var_mean": 1.7975815229602026
+        }
+      },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -16.343798,
+          "dm_stat": -1.8505,
+          "p_value_two_sided": 0.064239,
+          "hac_var_mean": 78.0045720097807
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 0.527811,
+          "dm_stat": 0.1257,
+          "p_value_two_sided": 0.899931,
+          "hac_var_mean": 17.617683062142152
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -90.434398,
+          "dm_stat": -13.5002,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 44.8733867507475
+        },
+        "ensemble-inv-mae-14__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -1.039578,
+          "dm_stat": -0.4422,
+          "p_value_two_sided": 0.658344,
+          "hac_var_mean": 5.526805660244222
         }
       },
       "conformal": {
@@ -163231,6 +163459,44 @@
           "hac_var_mean": 75.31103402392945
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -113.574248,
+          "dm_stat": -2.3248,
+          "p_value_two_sided": 0.020083,
+          "hac_var_mean": 2386.652196557975
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 31.955798,
+          "dm_stat": 0.7998,
+          "p_value_two_sided": 0.423807,
+          "hac_var_mean": 1596.246679307548
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -772.084732,
+          "dm_stat": -12.2131,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 3996.4773345212025
+        },
+        "ensemble-inv-mae-14__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 28.471539,
+          "dm_stat": 1.3225,
+          "p_value_two_sided": 0.185992,
+          "hac_var_mean": 463.45890229075013
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -192761,6 +193027,44 @@
           "hac_var_mean": 564.8550499433752
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -5.283633,
+          "dm_stat": -0.0524,
+          "p_value_two_sided": 0.958221,
+          "hac_var_mean": 10172.751044784756
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 68.209138,
+          "dm_stat": 0.9492,
+          "p_value_two_sided": 0.342524,
+          "hac_var_mean": 5163.9103727103875
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -3493.298651,
+          "dm_stat": -21.1494,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 27281.984218644575
+        },
+        "ensemble-inv-mae-14__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 54.254795,
+          "dm_stat": 1.1908,
+          "p_value_two_sided": 0.233715,
+          "hac_var_mean": 2075.713801219236
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -203039,6 +203343,44 @@
           "dm_stat": -3.2211,
           "p_value_two_sided": 0.001277,
           "hac_var_mean": 6426.172281624519
+        }
+      },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 25,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -56.314121,
+          "dm_stat": -0.2274,
+          "p_value_two_sided": 0.820088,
+          "hac_var_mean": 61310.18738383413
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 25,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -473.365538,
+          "dm_stat": -1.7286,
+          "p_value_two_sided": 0.083889,
+          "hac_var_mean": 74993.99070354667
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 25,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -2136.133078,
+          "dm_stat": -3.4142,
+          "p_value_two_sided": 0.00064,
+          "hac_var_mean": 391450.47874430136
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 25,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -285.96412,
+          "dm_stat": -1.4123,
+          "p_value_two_sided": 0.157864,
+          "hac_var_mean": 40998.98609206386
         }
       },
       "conformal": {
@@ -213371,6 +213713,44 @@
           "hac_var_mean": 6224.240393904794
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -800.655132,
+          "dm_stat": -1.6962,
+          "p_value_two_sided": 0.089848,
+          "hac_var_mean": 222811.60625013468
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -256.524506,
+          "dm_stat": -1.3428,
+          "p_value_two_sided": 0.179347,
+          "hac_var_mean": 36496.83045791368
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -2656.1881,
+          "dm_stat": -4.6901,
+          "p_value_two_sided": 3e-06,
+          "hac_var_mean": 320742.0712153115
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -6.016554,
+          "dm_stat": -0.0323,
+          "p_value_two_sided": 0.974206,
+          "hac_var_mean": 34625.57766153057
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -223701,6 +224081,44 @@
           "hac_var_mean": 602.6532941338548
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -372.694428,
+          "dm_stat": -5.7965,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 4134.050676970407
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -229.636786,
+          "dm_stat": -3.5532,
+          "p_value_two_sided": 0.000381,
+          "hac_var_mean": 4176.700808758097
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -1279.188498,
+          "dm_stat": -18.2671,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 4903.779088841544
+        },
+        "ensemble-inv-mae-14__vs__lightgbm-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 121.733396,
+          "dm_stat": 4.8224,
+          "p_value_two_sided": 1e-06,
+          "hac_var_mean": 637.2275037203759
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -226829,6 +227247,44 @@
           "dm_stat": 0.5027,
           "p_value_two_sided": 0.615154,
           "hac_var_mean": 158.19602590403318
+        }
+      },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 24,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 84.865776,
+          "dm_stat": 1.3799,
+          "p_value_two_sided": 0.167626,
+          "hac_var_mean": 3782.5800518068304
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 24,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -67.210521,
+          "dm_stat": -0.8043,
+          "p_value_two_sided": 0.421207,
+          "hac_var_mean": 6982.442334532635
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 24,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 25.257028,
+          "dm_stat": 0.2858,
+          "p_value_two_sided": 0.775008,
+          "hac_var_mean": 7808.141530328475
+        },
+        "ensemble-inv-mae-14__vs__seasonal-naive-168h": {
+          "n_anchors": 24,
+          "lag": 2,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 6.323138,
+          "dm_stat": 0.3515,
+          "p_value_two_sided": 0.725184,
+          "hac_var_mean": 323.5332526953433
         }
       },
       "conformal": {
@@ -229961,6 +230417,44 @@
           "hac_var_mean": 186.34311546104774
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 95.128189,
+          "dm_stat": 2.5206,
+          "p_value_two_sided": 0.011716,
+          "hac_var_mean": 1424.3405738098402
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 90.19478,
+          "dm_stat": 2.2328,
+          "p_value_two_sided": 0.025565,
+          "hac_var_mean": 1631.8502418299581
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -647.86654,
+          "dm_stat": -8.6532,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 5605.574243094
+        },
+        "ensemble-inv-mae-14__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 7.744604,
+          "dm_stat": 0.4225,
+          "p_value_two_sided": 0.672659,
+          "hac_var_mean": 336.0026094794197
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -233091,6 +233585,44 @@
           "hac_var_mean": 2.86705275148048
         }
       },
+      "dm_per_anchor": {
+        "lightgbm-weather__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 12.143969,
+          "dm_stat": 1.8266,
+          "p_value_two_sided": 0.06776,
+          "hac_var_mean": 44.201401725304
+        },
+        "lightgbm-weather__vs__ridge-weather": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 10.593351,
+          "dm_stat": 2.1112,
+          "p_value_two_sided": 0.034759,
+          "hac_var_mean": 25.178280219280904
+        },
+        "lightgbm-weather__vs__chronos-bolt-zero-shot": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": -55.51383,
+          "dm_stat": -13.0344,
+          "p_value_two_sided": 0.0,
+          "hac_var_mean": 18.13919419015544
+        },
+        "ensemble-inv-mae-14__vs__seasonal-naive-168h": {
+          "n_anchors": 30,
+          "lag": 3,
+          "loss": "absolute-per-anchor",
+          "mean_loss_diff": 1.188713,
+          "dm_stat": 0.4819,
+          "p_value_two_sided": 0.629912,
+          "hac_var_mean": 6.0859511491512555
+        }
+      },
       "conformal": {
         "ensemble-inv-mae-14": {
           "coverage": [
@@ -233330,10 +233862,10 @@
       }
     }
   },
-  "generated_at": "2026-09-27T14:47:57+00:00",
+  "generated_at": "2026-09-28T16:36:16+00:00",
   "code": {
     "gridcast_version": "0.1.0",
-    "git_sha": "2ae6912",
-    "git_dirty": false
+    "git_sha": "077bfd5",
+    "git_dirty": true
   }
 }
