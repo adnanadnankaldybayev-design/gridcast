@@ -7,13 +7,14 @@
   const gridEl = G.$("markets-grid");
   const trustEl = document.getElementById("trust-strip");
 
-  let latest, history, metrics, extract;
+  let latest, history, metrics, extract, insights;
   try {
-    [latest, history, metrics, extract] = await Promise.all([
+    [latest, history, metrics, extract, insights] = await Promise.all([
       G.fetchJSON("data/latest_forecasts.json"),
       G.fetchJSON("data/forecast_history.json"),
       G.fetchJSON("data/metrics.json"),
       G.fetchJSON("data/benchmark_extract.json").catch(() => ({ units: {} })),
+      G.fetchJSON("data/ai_insights.json").catch(() => null),
     ]);
   } catch (e) {
     G.failState(chartEl.parentElement, e, () => location.reload());
@@ -55,6 +56,9 @@
     el.innerHTML = `<span class="k">${c.k}</span><span class="v">${c.v}</span>`;
     trustEl.appendChild(el);
   }
+
+  // ---- AI Analyst card ----
+  if (insights) G.renderAI(G.$("ai-analyst"), insights, { compact: false });
 
   // ---- hero chart ----
   chartEl.innerHTML = "";

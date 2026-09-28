@@ -1,0 +1,79 @@
+/* GridCast design tokens - mobile-first design system.
+ * Named by role, consumed by every component. Components do not hardcode
+ * colors, radii, shadows, spacing steps, or typefaces outside this file.
+ * Foundation: GitHub-dark surfaces; electronic green for live series; cyan
+ * for provenance/metrics; amber only for honest warnings (degredations,
+ * publication lags); red only for errors. */
+:root {
+  /* surfaces and text */
+  --gc-bg: #0d1117;
+  --gc-surface: #161b22;
+  --gc-surface-2: #131820;
+  --gc-border: #21262d;
+  --gc-border-strong: #30363d;
+  --gc-fg: #e6edf3;
+  --gc-fg-muted: #8b949e;
+  --gc-fg-faint: #6e7681;
+
+  /* accents (data) */
+  --gc-green: #3fb950;
+  --gc-green-soft: rgba(63, 185, 80, 0.16);
+  --gc-green-band: rgba(63, 185, 80, 0.28);
+  --gc-cyan: #39c5cf;
+  --gc-accent: #58a6ff;
+  --gc-warn: #d29922;
+  --gc-red: #f85149;
+
+  /* typography: Inter for UI, tabular-nums for data; 1.25 type scale */
+  --gc-font: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --gc-fs-xs: 0.75rem;
+  --gc-fs-sm: 0.8125rem;
+  --gc-fs-base: 1rem;
+  --gc-fs-lg: 1.25rem;
+  --gc-fs-xl: 1.5625rem;
+  --gc-fs-2xl: 1.9531rem;
+  --gc-fs-hero: clamp(1.75rem, 1.2rem + 2.6vw, 2.6rem);
+  --gc-fs-fl-body: clamp(0.9375rem, 0.88rem + 0.25vw, 1.0625rem);
+  --gc-line: 1.55;
+  --gc-line-tight: 1.25;
+
+  /* spacing: 8pt grid */
+  --gc-s1: 0.25rem;
+  --gc-s2: 0.5rem;
+  --gc-s3: 0.75rem;
+  --gc-s4: 1rem;
+  --gc-s5: 1.5rem;
+  --gc-s6: 2rem;
+  --gc-s7: 3rem;
+  --gc-s8: 4rem;
+  --gc-section: clamp(1.5rem, 1rem + 3vw, 3.75rem);
+
+  /* radii */
+  --gc-r1: 8px;
+  --gc-r2: 10px;
+  --gc-r3: 14px;
+  --gc-rpill: 999px;
+
+  /* shadows: single restrained electronic set */
+  --gc-shadow-1: 0 1px 3px rgba(1, 4, 9, 0.45);
+  --gc-shadow-2: 0 2px 10px rgba(1, 4, 9, 0.35), 0 14px 30px rgba(63, 185, 80, 0.05);
+
+  /* motion: one orchestrated load reveal max, otherwise instant */
+  --gc-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --gc-dur: 180ms;
+
+  /* breakpoints (mobile-first; used inside min-width media blocks) */
+  --gc-bp-sm: 640px;
+  --gc-bp-md: 768px;
+  --gc-bp-lg: 1024px;
+  --gc-bp-xl: 1360px;
+
+  /* touch */
+  --gc-tap: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --gc-dur: 0ms;
+  }
+}

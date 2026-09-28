@@ -303,7 +303,25 @@ def run_forecast(
     _update_history(site_dir / "forecast_history.json", generated, snapshots)
     _write_metrics(site_dir / "metrics.json", generated, snapshots)
     _write_benchmark_extract(site_dir / "benchmark_extract.json")
+    _write_ai_insights(site_dir / "ai_insights.json", latest)
     return latest
+
+
+def _write_ai_insights(path: Path, latest: dict) -> None:
+    """AI Analyst of the day (statistical by default, LLM optional w/ verify)."""
+    try:
+        from gridcast.publish.analyst import generate_insights
+
+        metrics_doc = {}
+        metrics_path = path.parent / "metrics.json"
+        if metrics_path.exists():
+            metrics_doc = json.loads(metrics_path.read_text(encoding="utf-8"))
+        history_path = path.parent / "forecast_history.json"
+        history_doc = json.loads(history_path.read_text(encoding="utf-8"))
+        payload = generate_insights(latest, history_doc, metrics_doc)
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception:
+        log.exception("ai-insights: generation failed, skipped")
 
 
 def _load_benchmark() -> dict:
