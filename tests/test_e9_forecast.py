@@ -80,6 +80,54 @@ def test_snapshot_schema_contract(tmp_path, stub_weather):
     assert "generated_at" in metrics and "units" in metrics
 
 
+def test_contract_v2_units_meta_and_generated_by(tmp_path, stub_weather):
+    """R0 contract v2 (PROJECT_REBUILD_PLAN §1.7 note): site/data emits
+    units_meta + generated_by with git provenance, ADDITIVE over v1 keys."""
+    _write_markets(tmp_path)
+    issue = pd.Timestamp("2026-09-05 02:00", tz="UTC")
+    site = tmp_path / "site" / "data"
+    latest = pub.run_forecast(
+        [("GB", "GB"), ("FR", "FR")],
+        issue=issue,
+        data_dir=tmp_path,
+        site_dir=site,
+        snapshots_dir=tmp_path / "sn",
+    )
+    gb = latest["generated_by"]
+    assert set(gb) == {"git_sha", "gridcast_version"}
+    assert isinstance(gb["git_sha"], str) and len(gb["git_sha"]) >= 6
+    meta = latest["units_meta"]
+    assert set(meta) == {"GB", "FR"}
+    for unit in ("GB", "FR"):
+        for key in (
+            "display_name",
+            "operator",
+            "country_code",
+            "flag",
+            "tz",
+            "cadence_min",
+            "pub_lag_days",
+            "primary_metric",
+            "source_link",
+            "caveat",
+            "market",
+            "unit",
+        ):
+            assert key in meta[unit], (unit, key)
+    assert meta["GB"]["pub_lag_days"] == 21.0
+    assert meta["FR"]["market"] == "FR"
+    assert meta["GB"]["tz"] == "Europe/London"
+    assert meta["FR"]["cadence_min"] == 15
+
+    import json
+
+    metrics_doc = json.loads((site / "metrics.json").read_text())
+    assert "generated_by" in metrics_doc and "units_meta" in metrics_doc
+
+    extract = json.loads((site / "benchmark_extract.json").read_text())
+    assert "units" in extract and "git_sha" in extract
+
+
 def test_leak_guard_cutoff_respected(tmp_path, stub_weather):
     """Corrupting data after (issue - pub_lag) must NOT change predictions."""
     _write_markets(tmp_path)

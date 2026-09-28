@@ -275,11 +275,20 @@ def run_forecast(
     else:
         merged_units = snapshots
 
+    from gridcast.eval.backtest import git_state as _gs
+    from gridcast.publish.units_meta import UNITS_META
+
     latest = {
         "generated_at": generated,
+        "generated_by": {
+            # provenance of the writer itself; clean-tree policy keeps it true
+            "git_sha": _gs(REPO_ROOT)["git_sha"],
+            "gridcast_version": __import__("gridcast").__version__,
+        },
         "issue": issue.isoformat(),
         "horizon_h": HORIZON_H,
         "units": merged_units,
+        "units_meta": {u: UNITS_META[u] for u in merged_units if u in UNITS_META},
         "degraded": degraded,
     }
     latest_path.write_text(json.dumps(latest, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -290,32 +299,95 @@ def run_forecast(
         )
     _update_history(site_dir / "forecast_history.json", generated, snapshots)
     _write_metrics(site_dir / "metrics.json", generated, snapshots)
+    _write_benchmark_extract(site_dir / "benchmark_extract.json")
     return latest
 
 
-def _write_metrics(path: Path, generated: str, snapshots: dict) -> None:
-    """Метрики для карточек: rolling-window точность чемпиона vs naive за
-    последние N дней (по свежим опубликованным фактам + прогнозам истории)."""
+def _load_benchmark() -> dict:
     bench_path = REPO_ROOT / "reports" / "latest_benchmark.json"
+    if not bench_path.exists():
+        return {}
+    try:
+        return json.loads(bench_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        log.warning("benchmark json unreadable, skipped")
+        return {}
+
+
+def _write_metrics(path: Path, generated: str, snapshots: dict) -> None:
+    """metrics.json v2: rolling-benchmark точность champion vs naive per unit
+    + generated_by provenance (contract-additive; old keys unchanged)."""
+    from gridcast.eval.backtest import git_state as _gs
+    from gridcast.publish.units_meta import UNITS_META
+
+    bench = _load_benchmark()
     units = {}
-    if bench_path.exists():
-        try:
-            bench = json.loads(bench_path.read_text(encoding="utf-8"))
-            for key, res in bench.get("results", {}).items():
-                primary = res["primary_metric"]
-                champ = res["champion_model"]
-                units[key.split("/")[1]] = {
-                    "champion_model": champ,
-                    "primary_metric": primary,
-                    "champion_value": res["metrics"][champ]["overall"][primary],
-                    "naive_value": res["metrics"]["seasonal-naive-168h"]["overall"][primary],
+    for key, res in bench.get("results", {}).items():
+        primary = res["primary_metric"]
+        champ = res["champion_model"]
+        units[key.split("/")[1]] = {
+            "champion_model": champ,
+            "primary_metric": primary,
+            "champion_value": res["metrics"][champ]["overall"][primary],
+            "naive_value": res["metrics"]["seasonal-naive-168h"]["overall"][primary],
+        }
+    payload = {
+        "generated_at": generated,
+        "generated_by": {
+            **({"git_sha": bench.get("code", {}).get("git_sha")} if bench.get("code") else {}),
+            "writer_git_sha": _gs(REPO_ROOT)["git_sha"],
+        },
+        "units": units,
+        "units_meta": {u: UNITS_META[u] for u in units if u in UNITS_META},
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _write_benchmark_extract(path: Path) -> None:
+    """Landing/explorer tables: by_horizon / by_month for each unit, clipped so
+    the public bundle stays small (benchmark is MB-scale on disk)."""
+    bench = _load_benchmark()
+    if not bench:
+        return
+    units = {}
+    for _key, res in bench.get("results", {}).items():
+        unit = res["unit"]
+        primary = res["primary_metric"]
+        champ = res["champion_model"]
+        m = res["metrics"][champ]
+        n = res["metrics"].get("seasonal-naive-168h")
+        n_h = (n or {}).get("by_horizon") or []
+        n_m = (n or {}).get("by_month") or []
+        units[unit] = {
+            "champion_model": champ,
+            "primary_metric": primary,
+            "champion_value": m["overall"][primary],
+            "naive_value": (n["overall"][primary] if n else None),
+            "by_horizon": [
+                {
+                    "h": row["horizon_hours"],
+                    "champion": row[primary],
+                    "naive": (n_h[i][primary] if i < len(n_h) else None),
                 }
-        except (json.JSONDecodeError, KeyError, TypeError):
-            log.warning("metrics: benchmark json unreadable, skipped")
-    path.write_text(
-        json.dumps({"generated_at": generated, "units": units}, ensure_ascii=False, indent=1),
-        encoding="utf-8",
-    )
+                for i, row in enumerate(m["by_horizon"])
+                if row["horizon_hours"] in (1.0, 6.0, 12.0, 24.0, 36.0, 48.0)
+            ],
+            "by_month": [
+                {
+                    "month": row["month"],
+                    "champion": row[primary],
+                    "naive": (n_m[i][primary] if i < len(n_m) else None),
+                }
+                for i, row in enumerate(m["by_month"])
+            ],
+            "conformal": res.get("conformal", {}).get("lightgbm-weather", {}).get("coverage"),
+        }
+    payload = {
+        "generated_at": bench.get("generated_at"),
+        "git_sha": (bench.get("code") or {}).get("git_sha"),
+        "units": units,
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _update_history(path: Path, generated: str, snapshots: dict) -> None:
