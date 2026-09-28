@@ -26,10 +26,10 @@
       "delta_pp": -0.093
     }
   },
-  "generated_at": "2026-09-28T16:29:35+00:00",
+  "generated_at": "2026-09-28T17:01:26+00:00",
   "code": {
     "gridcast_version": "0.1.0",
-    "git_sha": "1b5a17a",
-    "git_dirty": true
+    "git_sha": "4ed815b",
+    "git_dirty": false
   }
 }
