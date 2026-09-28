@@ -1,8 +1,9 @@
 {
- "generated_at": "2026-09-28T12:49:31+00:00",
+ "generated_at": "2026-09-28T13:37:08+00:00",
  "generated_by": {
   "git_sha": "2ae6912",
-  "writer_git_sha": "81be049"
+  "writer_git_sha": "7fae766",
+  "writer_git_dirty": true
  },
  "units": {
   "GB": {
@@ -103,7 +104,7 @@
    "pub_lag_days": 21.0,
    "primary_metric": "mape_pct",
    "source_link": "https://data.neso.energy",
-   "caveat": "Operator actuals publish ~21 days late by design — the tail of the fact series always ends three weeks before today."
+   "caveat": "Operator actuals publish ~21 days late by design - the tail of the fact series always ends three weeks before today."
   },
   "ALL": {
    "unit": "ALL",
@@ -122,7 +123,7 @@
   "NSW1": {
    "unit": "NSW1",
    "market": "AU",
-   "display_name": "Australia — New South Wales",
+   "display_name": "Australia - New South Wales",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -136,7 +137,7 @@
   "QLD1": {
    "unit": "QLD1",
    "market": "AU",
-   "display_name": "Australia — Queensland",
+   "display_name": "Australia - Queensland",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -150,7 +151,7 @@
   "SA1": {
    "unit": "SA1",
    "market": "AU",
-   "display_name": "Australia — South Australia",
+   "display_name": "Australia - South Australia",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -159,12 +160,12 @@
    "pub_lag_days": 0.25,
    "primary_metric": "smape_pct",
    "source_link": "https://aemo.com.au/aemo/data/nem/priceanddemand/",
-   "caveat": "Operational demand dips below 0 MW at solar noon — sMAPE is the only honest ratio metric here."
+   "caveat": "Operational demand dips below 0 MW at solar noon - sMAPE is the only honest ratio metric here."
   },
   "TAS1": {
    "unit": "TAS1",
    "market": "AU",
-   "display_name": "Australia — Tasmania",
+   "display_name": "Australia - Tasmania",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -178,7 +179,7 @@
   "VIC1": {
    "unit": "VIC1",
    "market": "AU",
-   "display_name": "Australia — Victoria",
+   "display_name": "Australia - Victoria",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -192,7 +193,7 @@
   "NEM_TOTAL": {
    "unit": "NEM_TOTAL",
    "market": "AU",
-   "display_name": "Australia — NEM total",
+   "display_name": "Australia - NEM total",
    "operator": "AEMO",
    "country_code": "au",
    "flag": "🇦🇺",
@@ -243,7 +244,7 @@
    "pub_lag_days": 0.25,
    "primary_metric": "mape_pct",
    "source_link": "https://opendata.elia.be",
-   "caveat": "Transmission offtake view — midday solar depressions are real physics, well below the MAPE floor."
+   "caveat": "Transmission offtake view - midday solar depressions are real physics, well below the MAPE floor."
   },
   "DK": {
    "unit": "DK",
@@ -257,12 +258,12 @@
    "pub_lag_days": 18.0,
    "primary_metric": "mape_pct",
    "source_link": "https://api.energidataservice.dk",
-   "caveat": "Industry-settlement consumption publishes ~18 days late — this lag is the operator's design."
+   "caveat": "Industry-settlement consumption publishes ~18 days late - this lag is the operator's design."
   },
   "KZ": {
    "unit": "KZ",
    "market": "KZ",
-   "display_name": "Kazakhstan — North–South zone",
+   "display_name": "Kazakhstan - North-South zone",
    "operator": "KOREM",
    "country_code": "kz",
    "flag": "🇰🇿",
@@ -271,12 +272,12 @@
    "pub_lag_days": 0.25,
    "primary_metric": "mape_pct",
    "source_link": "https://portal.korem.kz",
-   "caveat": "Clearing-trade demand of centralized trades (~25–45% of physical consumption) — market-side volume, not physical grid load."
+   "caveat": "Clearing-trade demand of centralized trades (~25-45% of physical consumption) - market-side volume, not physical grid load."
   },
   "KZ_W": {
    "unit": "KZ_W",
    "market": "KZ",
-   "display_name": "Kazakhstan — West zone",
+   "display_name": "Kazakhstan - West zone",
    "operator": "KOREM",
    "country_code": "kz",
    "flag": "🇰🇿",
@@ -285,7 +286,7 @@
    "pub_lag_days": 0.25,
    "primary_metric": "mape_pct",
    "source_link": "https://portal.korem.kz",
-   "caveat": "Clearing-trade demand, West zone — trade-side volume, not physical grid load."
+   "caveat": "Clearing-trade demand, West zone - trade-side volume, not physical grid load."
   }
  }
 }
