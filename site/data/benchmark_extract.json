@@ -1,0 +1,1298 @@
+{
+ "generated_at": "2026-09-27T14:47:57+00:00",
+ "git_sha": "2ae6912",
+ "units": {
+  "GB": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 7.3861,
+   "naive_value": 9.4883,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 13.2258,
+     "naive": 20.2719
+    },
+    {
+     "h": 6.0,
+     "champion": 5.5606,
+     "naive": 8.3508
+    },
+    {
+     "h": 12.0,
+     "champion": 5.181,
+     "naive": 7.5219
+    },
+    {
+     "h": 24.0,
+     "champion": 13.2236,
+     "naive": 16.0891
+    },
+    {
+     "h": 36.0,
+     "champion": 5.2303,
+     "naive": 5.5956
+    },
+    {
+     "h": 48.0,
+     "champion": 10.374,
+     "naive": 14.8811
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 19.0262,
+     "naive": 19.9785
+    },
+    {
+     "month": "2026-05",
+     "champion": 5.9639,
+     "naive": 8.5688
+    },
+    {
+     "month": "2026-06",
+     "champion": 9.4271,
+     "naive": 10.6486
+    },
+    {
+     "month": "2026-07",
+     "champion": 6.1776,
+     "naive": 8.2331
+    },
+    {
+     "month": "2026-08",
+     "champion": 5.9133,
+     "naive": 8.6195
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.9186507936507936,
+     "mean_width": 7095.286400580006,
+     "coverage_gap": 0.1187,
+     "n": 2016
+    },
+    {
+     "level": 90,
+     "picp": 0.9672619047619048,
+     "mean_width": 8935.663362416653,
+     "coverage_gap": 0.0673,
+     "n": 2016
+    },
+    {
+     "level": 95,
+     "picp": 0.9895833333333334,
+     "mean_width": 10737.065742934385,
+     "coverage_gap": 0.0396,
+     "n": 2016
+    }
+   ]
+  },
+  "ALL": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "mape_pct",
+   "champion_value": 3.4634,
+   "naive_value": 3.7574,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 4.9718,
+     "naive": 5.9002
+    },
+    {
+     "h": 6.0,
+     "champion": 3.4956,
+     "naive": 4.8358
+    },
+    {
+     "h": 12.0,
+     "champion": 1.6421,
+     "naive": 2.3682
+    },
+    {
+     "h": 24.0,
+     "champion": 5.5831,
+     "naive": 7.0489
+    },
+    {
+     "h": 36.0,
+     "champion": 1.9571,
+     "naive": 2.227
+    },
+    {
+     "h": 48.0,
+     "champion": 5.8052,
+     "naive": 5.3075
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 4.6603,
+     "naive": 3.9619
+    },
+    {
+     "month": "2026-05",
+     "champion": 3.2129,
+     "naive": 4.2564
+    },
+    {
+     "month": "2026-06",
+     "champion": 3.9255,
+     "naive": 3.9529
+    },
+    {
+     "month": "2026-07",
+     "champion": 3.2951,
+     "naive": 3.7115
+    },
+    {
+     "month": "2026-08",
+     "champion": 3.008,
+     "naive": 3.9363
+    },
+    {
+     "month": "2026-09",
+     "champion": 2.548,
+     "naive": 2.4314
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8503951149425287,
+     "mean_width": 603.0656093886674,
+     "coverage_gap": 0.0504,
+     "n": 5568
+    },
+    {
+     "level": 90,
+     "picp": 0.9297772988505747,
+     "mean_width": 811.2750867864421,
+     "coverage_gap": 0.0298,
+     "n": 5568
+    },
+    {
+     "level": 95,
+     "picp": 0.9682112068965517,
+     "mean_width": 991.1833910078212,
+     "coverage_gap": 0.0182,
+     "n": 5568
+    }
+   ]
+  },
+  "NSW1": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "smape_pct",
+   "champion_value": 6.7372,
+   "naive_value": 7.163,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 3.4153,
+     "naive": 4.2309
+    },
+    {
+     "h": 6.0,
+     "champion": 4.4029,
+     "naive": 3.9455
+    },
+    {
+     "h": 12.0,
+     "champion": 8.3826,
+     "naive": 10.3948
+    },
+    {
+     "h": 24.0,
+     "champion": 4.2483,
+     "naive": 4.8531
+    },
+    {
+     "h": 36.0,
+     "champion": 9.3864,
+     "naive": 9.6809
+    },
+    {
+     "h": 48.0,
+     "champion": 4.1422,
+     "naive": 5.4004
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 8.0469,
+     "naive": 7.0684
+    },
+    {
+     "month": "2026-05",
+     "champion": 5.6749,
+     "naive": 6.5405
+    },
+    {
+     "month": "2026-06",
+     "champion": 6.4326,
+     "naive": 7.4062
+    },
+    {
+     "month": "2026-07",
+     "champion": 4.4551,
+     "naive": 5.3292
+    },
+    {
+     "month": "2026-08",
+     "champion": 8.0308,
+     "naive": 7.5487
+    },
+    {
+     "month": "2026-09",
+     "champion": 8.3144,
+     "naive": 9.809
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8015445402298851,
+     "mean_width": 1570.0109024305518,
+     "coverage_gap": 0.0015,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.8991259578544061,
+     "mean_width": 2177.2678412332975,
+     "coverage_gap": -0.0009,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9462404214559387,
+     "mean_width": 2806.895931092777,
+     "coverage_gap": -0.0038,
+     "n": 16704
+    }
+   ]
+  },
+  "QLD1": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 3.9849,
+   "naive_value": 5.6224,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 1.5943,
+     "naive": 1.8557
+    },
+    {
+     "h": 6.0,
+     "champion": 1.8603,
+     "naive": 1.7879
+    },
+    {
+     "h": 12.0,
+     "champion": 7.2871,
+     "naive": 12.5414
+    },
+    {
+     "h": 24.0,
+     "champion": 1.8688,
+     "naive": 1.9804
+    },
+    {
+     "h": 36.0,
+     "champion": 8.0037,
+     "naive": 13.3564
+    },
+    {
+     "h": 48.0,
+     "champion": 2.1386,
+     "naive": 2.1053
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 4.6904,
+     "naive": 5.2387
+    },
+    {
+     "month": "2026-05",
+     "champion": 4.451,
+     "naive": 6.6988
+    },
+    {
+     "month": "2026-06",
+     "champion": 3.8672,
+     "naive": 6.2359
+    },
+    {
+     "month": "2026-07",
+     "champion": 2.5239,
+     "naive": 4.2357
+    },
+    {
+     "month": "2026-08",
+     "champion": 3.3003,
+     "naive": 5.153
+    },
+    {
+     "month": "2026-09",
+     "champion": 5.5462,
+     "naive": 6.4458
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8321360153256705,
+     "mean_width": 740.4461020472218,
+     "coverage_gap": 0.0321,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.9152897509578544,
+     "mean_width": 1151.808322548167,
+     "coverage_gap": 0.0153,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9570761494252874,
+     "mean_width": 1613.041607629211,
+     "coverage_gap": 0.0071,
+     "n": 16704
+    }
+   ]
+  },
+  "SA1": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 14.218,
+   "naive_value": 17.1778,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 4.3309,
+     "naive": 5.6271
+    },
+    {
+     "h": 6.0,
+     "champion": 5.1534,
+     "naive": 4.0156
+    },
+    {
+     "h": 12.0,
+     "champion": 18.327,
+     "naive": 18.9724
+    },
+    {
+     "h": 24.0,
+     "champion": 6.0454,
+     "naive": 5.7755
+    },
+    {
+     "h": 36.0,
+     "champion": 20.8957,
+     "naive": 24.6523
+    },
+    {
+     "h": 48.0,
+     "champion": 6.239,
+     "naive": 7.2636
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 14.5333,
+     "naive": 18.9519
+    },
+    {
+     "month": "2026-05",
+     "champion": 10.2911,
+     "naive": 11.7899
+    },
+    {
+     "month": "2026-06",
+     "champion": 11.3048,
+     "naive": 12.0108
+    },
+    {
+     "month": "2026-07",
+     "champion": 8.5711,
+     "naive": 14.1633
+    },
+    {
+     "month": "2026-08",
+     "champion": 16.9412,
+     "naive": 18.0192
+    },
+    {
+     "month": "2026-09",
+     "champion": 26.8068,
+     "naive": 31.5285
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8024425287356322,
+     "mean_width": 467.5669895830248,
+     "coverage_gap": 0.0024,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.8900862068965517,
+     "mean_width": 674.8484317983424,
+     "coverage_gap": -0.0099,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9381585249042146,
+     "mean_width": 886.0953732950107,
+     "coverage_gap": -0.0118,
+     "n": 16704
+    }
+   ]
+  },
+  "TAS1": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "smape_pct",
+   "champion_value": 6.1988,
+   "naive_value": 7.8144,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 5.8489,
+     "naive": 6.9426
+    },
+    {
+     "h": 6.0,
+     "champion": 6.6754,
+     "naive": 8.6042
+    },
+    {
+     "h": 12.0,
+     "champion": 6.3258,
+     "naive": 8.2205
+    },
+    {
+     "h": 24.0,
+     "champion": 6.115,
+     "naive": 8.1553
+    },
+    {
+     "h": 36.0,
+     "champion": 6.2305,
+     "naive": 8.2855
+    },
+    {
+     "h": 48.0,
+     "champion": 5.8009,
+     "naive": 7.8959
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 6.3914,
+     "naive": 7.7754
+    },
+    {
+     "month": "2026-05",
+     "champion": 6.1296,
+     "naive": 6.0694
+    },
+    {
+     "month": "2026-06",
+     "champion": 5.6465,
+     "naive": 8.3266
+    },
+    {
+     "month": "2026-07",
+     "champion": 7.6084,
+     "naive": 11.0775
+    },
+    {
+     "month": "2026-08",
+     "champion": 6.371,
+     "naive": 7.1849
+    },
+    {
+     "month": "2026-09",
+     "champion": 4.5751,
+     "naive": 5.852
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8207016283524904,
+     "mean_width": 232.0821993211103,
+     "coverage_gap": 0.0207,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.9063098659003831,
+     "mean_width": 295.97402727513406,
+     "coverage_gap": 0.0063,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9485153256704981,
+     "mean_width": 360.67730622604967,
+     "coverage_gap": -0.0015,
+     "n": 16704
+    }
+   ]
+  },
+  "VIC1": {
+   "champion_model": "ridge-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 7.4355,
+   "naive_value": 10.0933,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 7.1135,
+     "naive": 5.7795
+    },
+    {
+     "h": 6.0,
+     "champion": 7.901,
+     "naive": 6.5122
+    },
+    {
+     "h": 12.0,
+     "champion": 7.8576,
+     "naive": 10.3865
+    },
+    {
+     "h": 24.0,
+     "champion": 6.737,
+     "naive": 7.5322
+    },
+    {
+     "h": 36.0,
+     "champion": 8.0006,
+     "naive": 14.6279
+    },
+    {
+     "h": 48.0,
+     "champion": 6.0631,
+     "naive": 8.0185
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 8.1921,
+     "naive": 10.7739
+    },
+    {
+     "month": "2026-05",
+     "champion": 7.1669,
+     "naive": 10.7377
+    },
+    {
+     "month": "2026-06",
+     "champion": 6.2463,
+     "naive": 9.5587
+    },
+    {
+     "month": "2026-07",
+     "champion": 5.8655,
+     "naive": 10.29
+    },
+    {
+     "month": "2026-08",
+     "champion": 9.2356,
+     "naive": 8.9707
+    },
+    {
+     "month": "2026-09",
+     "champion": 8.1241,
+     "naive": 10.269
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.7834650383141762,
+     "mean_width": 1405.8715833204574,
+     "coverage_gap": -0.0165,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.8836206896551724,
+     "mean_width": 1857.209790938269,
+     "coverage_gap": -0.0164,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9350454980842912,
+     "mean_width": 2243.187025012363,
+     "coverage_gap": -0.015,
+     "n": 16704
+    }
+   ]
+  },
+  "NEM_TOTAL": {
+   "champion_model": "ridge-weather",
+   "primary_metric": "smape_pct",
+   "champion_value": 4.6347,
+   "naive_value": 4.9486,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 4.0484,
+     "naive": 3.1282
+    },
+    {
+     "h": 6.0,
+     "champion": 3.8095,
+     "naive": 3.1882
+    },
+    {
+     "h": 12.0,
+     "champion": 5.1843,
+     "naive": 5.3626
+    },
+    {
+     "h": 24.0,
+     "champion": 3.6657,
+     "naive": 4.0029
+    },
+    {
+     "h": 36.0,
+     "champion": 6.005,
+     "naive": 7.1414
+    },
+    {
+     "h": 48.0,
+     "champion": 3.7612,
+     "naive": 3.8911
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 5.8716,
+     "naive": 4.9171
+    },
+    {
+     "month": "2026-05",
+     "champion": 4.0301,
+     "naive": 4.4252
+    },
+    {
+     "month": "2026-06",
+     "champion": 4.3303,
+     "naive": 5.8102
+    },
+    {
+     "month": "2026-07",
+     "champion": 3.1868,
+     "naive": 4.0066
+    },
+    {
+     "month": "2026-08",
+     "champion": 6.0969,
+     "naive": 4.9965
+    },
+    {
+     "month": "2026-09",
+     "champion": 4.3332,
+     "naive": 5.8297
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.7956776819923371,
+     "mean_width": 3218.2518608054356,
+     "coverage_gap": -0.0043,
+     "n": 16704
+    },
+    {
+     "level": 90,
+     "picp": 0.8947557471264368,
+     "mean_width": 4330.361446986953,
+     "coverage_gap": -0.0052,
+     "n": 16704
+    },
+    {
+     "level": 95,
+     "picp": 0.9446240421455939,
+     "mean_width": 5411.372953556257,
+     "coverage_gap": -0.0054,
+     "n": 16704
+    }
+   ]
+  },
+  "FR": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 4.128,
+   "naive_value": 5.0274,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 4.2479,
+     "naive": 6.36
+    },
+    {
+     "h": 6.0,
+     "champion": 3.5008,
+     "naive": 5.161
+    },
+    {
+     "h": 12.0,
+     "champion": 3.4995,
+     "naive": 4.3899
+    },
+    {
+     "h": 24.0,
+     "champion": 4.173,
+     "naive": 4.763
+    },
+    {
+     "h": 36.0,
+     "champion": 3.4938,
+     "naive": 3.6129
+    },
+    {
+     "h": 48.0,
+     "champion": 4.8609,
+     "naive": 5.231
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-05",
+     "champion": 5.2669,
+     "naive": 5.6744
+    },
+    {
+     "month": "2026-06",
+     "champion": 5.0957,
+     "naive": 5.6572
+    },
+    {
+     "month": "2026-07",
+     "champion": 4.8557,
+     "naive": 6.9079
+    },
+    {
+     "month": "2026-08",
+     "champion": 3.2538,
+     "naive": 3.8848
+    },
+    {
+     "month": "2026-09",
+     "champion": 2.9205,
+     "naive": 3.1221
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8880236305048335,
+     "mean_width": 8508.413789568662,
+     "coverage_gap": 0.088,
+     "n": 3724
+    },
+    {
+     "level": 90,
+     "picp": 0.9430719656283566,
+     "mean_width": 11126.894867874802,
+     "coverage_gap": 0.0431,
+     "n": 3724
+    },
+    {
+     "level": 95,
+     "picp": 0.9774436090225563,
+     "mean_width": 13180.745921249178,
+     "coverage_gap": 0.0274,
+     "n": 3724
+    }
+   ]
+  },
+  "DE": {
+   "champion_model": "ensemble-inv-mae-14",
+   "primary_metric": "mape_pct",
+   "champion_value": 4.6338,
+   "naive_value": 6.254,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 6.1235,
+     "naive": 9.4875
+    },
+    {
+     "h": 6.0,
+     "champion": 3.8993,
+     "naive": 5.6033
+    },
+    {
+     "h": 12.0,
+     "champion": 4.1327,
+     "naive": 5.333
+    },
+    {
+     "h": 24.0,
+     "champion": 5.1534,
+     "naive": 7.6849
+    },
+    {
+     "h": 36.0,
+     "champion": 4.348,
+     "naive": 5.6831
+    },
+    {
+     "h": 48.0,
+     "champion": 4.447,
+     "naive": 5.7888
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 6.3778,
+     "naive": 8.3971
+    },
+    {
+     "month": "2026-05",
+     "champion": 5.7582,
+     "naive": 10.8843
+    },
+    {
+     "month": "2026-06",
+     "champion": 4.1395,
+     "naive": 5.4098
+    },
+    {
+     "month": "2026-07",
+     "champion": 3.2661,
+     "naive": 3.7845
+    },
+    {
+     "month": "2026-08",
+     "champion": 4.4858,
+     "naive": 4.7836
+    },
+    {
+     "month": "2026-09",
+     "champion": 3.6725,
+     "naive": 3.8863
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.7975933908045977,
+     "mean_width": 7567.203337097433,
+     "coverage_gap": -0.0024,
+     "n": 5568
+    },
+    {
+     "level": 90,
+     "picp": 0.9067887931034483,
+     "mean_width": 9953.649184644306,
+     "coverage_gap": 0.0068,
+     "n": 5568
+    },
+    {
+     "level": 95,
+     "picp": 0.9594109195402298,
+     "mean_width": 12678.760766703266,
+     "coverage_gap": 0.0094,
+     "n": 5568
+    }
+   ]
+  },
+  "BE": {
+   "champion_model": "lightgbm-weather",
+   "primary_metric": "mape_pct",
+   "champion_value": 16.9811,
+   "naive_value": 25.1978,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 58.5622,
+     "naive": 101.0269
+    },
+    {
+     "h": 6.0,
+     "champion": 5.796,
+     "naive": 9.4405
+    },
+    {
+     "h": 12.0,
+     "champion": 7.5509,
+     "naive": 12.3478
+    },
+    {
+     "h": 24.0,
+     "champion": 52.1279,
+     "naive": 78.0188
+    },
+    {
+     "h": 36.0,
+     "champion": 5.8753,
+     "naive": 8.5723
+    },
+    {
+     "h": 48.0,
+     "champion": 34.1105,
+     "naive": 51.0163
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 29.4426,
+     "naive": 32.6403
+    },
+    {
+     "month": "2026-05",
+     "champion": 17.7064,
+     "naive": 28.3492
+    },
+    {
+     "month": "2026-06",
+     "champion": 12.9637,
+     "naive": 21.1669
+    },
+    {
+     "month": "2026-07",
+     "champion": 14.3863,
+     "naive": 22.5201
+    },
+    {
+     "month": "2026-08",
+     "champion": 15.3477,
+     "naive": 28.1841
+    },
+    {
+     "month": "2026-09",
+     "champion": 11.1886,
+     "naive": 16.5598
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8320761494252874,
+     "mean_width": 2315.621490023217,
+     "coverage_gap": 0.0321,
+     "n": 5568
+    },
+    {
+     "level": 90,
+     "picp": 0.9267241379310345,
+     "mean_width": 3241.9729871112777,
+     "coverage_gap": 0.0267,
+     "n": 5568
+    },
+    {
+     "level": 95,
+     "picp": 0.9669540229885057,
+     "mean_width": 4052.066423367468,
+     "coverage_gap": 0.017,
+     "n": 5568
+    }
+   ]
+  },
+  "DK": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 8.1652,
+   "naive_value": 8.1652,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 9.5798,
+     "naive": 9.5798
+    },
+    {
+     "h": 6.0,
+     "champion": 6.5189,
+     "naive": 6.5189
+    },
+    {
+     "h": 12.0,
+     "champion": 9.2233,
+     "naive": 9.2233
+    },
+    {
+     "h": 24.0,
+     "champion": 8.823,
+     "naive": 8.823
+    },
+    {
+     "h": 36.0,
+     "champion": 8.5938,
+     "naive": 8.5938
+    },
+    {
+     "h": 48.0,
+     "champion": 6.3266,
+     "naive": 6.3266
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 13.3217,
+     "naive": 13.3217
+    },
+    {
+     "month": "2026-05",
+     "champion": 10.1825,
+     "naive": 10.1825
+    },
+    {
+     "month": "2026-06",
+     "champion": 6.3458,
+     "naive": 6.3458
+    },
+    {
+     "month": "2026-07",
+     "champion": 6.3574,
+     "naive": 6.3574
+    },
+    {
+     "month": "2026-08",
+     "champion": 7.2705,
+     "naive": 7.2705
+    },
+    {
+     "month": "2026-09",
+     "champion": 11.0601,
+     "naive": 11.0601
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8496376811594203,
+     "mean_width": 1540.432333587738,
+     "coverage_gap": 0.0496,
+     "n": 1104
+    },
+    {
+     "level": 90,
+     "picp": 0.917572463768116,
+     "mean_width": 2147.993630280331,
+     "coverage_gap": 0.0176,
+     "n": 1104
+    },
+    {
+     "level": 95,
+     "picp": 0.9393115942028986,
+     "mean_width": 2645.880120180657,
+     "coverage_gap": -0.0107,
+     "n": 1104
+    }
+   ]
+  },
+  "KZ": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 13.1333,
+   "naive_value": 13.1333,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 11.0181,
+     "naive": 11.0181
+    },
+    {
+     "h": 6.0,
+     "champion": 17.9895,
+     "naive": 17.9895
+    },
+    {
+     "h": 12.0,
+     "champion": 13.3929,
+     "naive": 13.3929
+    },
+    {
+     "h": 24.0,
+     "champion": 9.1162,
+     "naive": 9.1162
+    },
+    {
+     "h": 36.0,
+     "champion": 13.4837,
+     "naive": 13.4837
+    },
+    {
+     "h": 48.0,
+     "champion": 9.8889,
+     "naive": 9.8889
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 17.2026,
+     "naive": 17.2026
+    },
+    {
+     "month": "2026-05",
+     "champion": 20.9645,
+     "naive": 20.9645
+    },
+    {
+     "month": "2026-06",
+     "champion": 14.3109,
+     "naive": 14.3109
+    },
+    {
+     "month": "2026-07",
+     "champion": 10.6566,
+     "naive": 10.6566
+    },
+    {
+     "month": "2026-08",
+     "champion": 7.0171,
+     "naive": 7.0171
+    },
+    {
+     "month": "2026-09",
+     "champion": 7.8021,
+     "naive": 7.8021
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.8505747126436781,
+     "mean_width": 1756.4903091012454,
+     "coverage_gap": 0.0506,
+     "n": 1392
+    },
+    {
+     "level": 90,
+     "picp": 0.9346264367816092,
+     "mean_width": 2105.6153224504324,
+     "coverage_gap": 0.0346,
+     "n": 1392
+    },
+    {
+     "level": 95,
+     "picp": 0.9777298850574713,
+     "mean_width": 2432.1558258786386,
+     "coverage_gap": 0.0277,
+     "n": 1392
+    }
+   ]
+  },
+  "KZ_W": {
+   "champion_model": "seasonal-naive-168h",
+   "primary_metric": "mape_pct",
+   "champion_value": 13.8906,
+   "naive_value": 13.8906,
+   "by_horizon": [
+    {
+     "h": 1.0,
+     "champion": 7.069,
+     "naive": 7.069
+    },
+    {
+     "h": 6.0,
+     "champion": 12.1507,
+     "naive": 12.1507
+    },
+    {
+     "h": 12.0,
+     "champion": 12.3893,
+     "naive": 12.3893
+    },
+    {
+     "h": 24.0,
+     "champion": 10.171,
+     "naive": 10.171
+    },
+    {
+     "h": 36.0,
+     "champion": 17.0349,
+     "naive": 17.0349
+    },
+    {
+     "h": 48.0,
+     "champion": 12.3705,
+     "naive": 12.3705
+    }
+   ],
+   "by_month": [
+    {
+     "month": "2026-04",
+     "champion": 16.7354,
+     "naive": 16.7354
+    },
+    {
+     "month": "2026-05",
+     "champion": 11.2775,
+     "naive": 11.2775
+    },
+    {
+     "month": "2026-06",
+     "champion": 11.0751,
+     "naive": 11.0751
+    },
+    {
+     "month": "2026-07",
+     "champion": 13.2624,
+     "naive": 13.2624
+    },
+    {
+     "month": "2026-08",
+     "champion": 18.4852,
+     "naive": 18.4852
+    },
+    {
+     "month": "2026-09",
+     "champion": 12.0795,
+     "naive": 12.0795
+    }
+   ],
+   "conformal": [
+    {
+     "level": 80,
+     "picp": 0.7543103448275862,
+     "mean_width": 183.30946186690997,
+     "coverage_gap": -0.0457,
+     "n": 1392
+    },
+    {
+     "level": 90,
+     "picp": 0.8591954022988506,
+     "mean_width": 228.3580699950204,
+     "coverage_gap": -0.0408,
+     "n": 1392
+    },
+    {
+     "level": 95,
+     "picp": 0.9116379310344828,
+     "mean_width": 272.95795466719005,
+     "coverage_gap": -0.0384,
+     "n": 1392
+    }
+   ]
+  }
+ }
+}
