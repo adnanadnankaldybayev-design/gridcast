@@ -288,6 +288,68 @@ def run_forecast(argv: list[str]) -> int:
     return 0
 
 
+def run_ablation(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="gridcast ablation nwp")
+    parser.add_argument("kind", choices=["nwp"])
+    parser.add_argument("--start", default="2026-08-20")
+    parser.add_argument("--end", default="2026-09-20")
+    parser.add_argument(
+        "--sigma", type=float, default=1.75, help="degrees C of day-ahead NWP noise"
+    )
+    parser.add_argument("--units", nargs="+", default=["GB/GB", "IE/ALL", "DE/DE"])
+    parser.add_argument("--data-dir", default=str(PROCESSED_DIR))
+    parser.add_argument(
+        "--out", default=str(REPO_ROOT / "reports" / "latest_nwp_ablation.json")
+    )
+    args = parser.parse_args(argv)
+
+    from gridcast.eval.backtest import finish_report
+    from gridcast.eval.nwp_ablation import run_nwp_ablation
+
+    def mape(frame):
+        a = frame.actual.astype(float)
+        p = frame.predicted.astype(float)
+        return float((100 * (a - p).abs() / a.abs()).mean())
+
+    pairs = []
+    for u in args.units:
+        market, unit = u.split("/")
+        pairs.append((market, unit))
+    res = run_nwp_ablation(
+        pairs,
+        pd.Timestamp(args.start, tz="UTC"),
+        pd.Timestamp(args.end, tz="UTC"),
+        sigma=args.sigma,
+        data_dir=Path(args.data_dir),
+    )
+    report = {
+        "experiment": (
+            f"archive-weather vs ~N(0, sigma={args.sigma:.2f}C)-degraded weather "
+            "(GBM-weather)"
+        ),
+        "sigma_c": args.sigma,
+        "window": {"start": args.start, "end": args.end},
+        "note": "a finite-sample seed realization; DE is the small-window near-zero counterexample",
+        "results": {
+            key: {
+                "anchors": int(pair["archive"][1].anchor.nunique()),
+                "mape_archive": round(mape(pair["archive"][1]), 3),
+                "mape_noisy": round(mape(pair["noisy"][1]), 3),
+                "delta_pp": round(mape(pair["noisy"][1]) - mape(pair["archive"][1]), 3),
+            }
+            for key, pair in res.items()
+        },
+    }
+    finish_report(report, Path(args.out))
+    for key, r in report["results"].items():
+        log.info(
+            "%s: archive %.3f -> noisy %.3f (delta %+.3f)",
+            key, r["mape_archive"], r["mape_noisy"], r["delta_pp"],
+        )
+    print(f"wrote {args.out}")
+    return 0
+
+
 def run_analyze(argv: list[str]) -> int:
     from gridcast.eval.analyze import run_analysis
     from gridcast.eval.backtest import finish_report
@@ -357,6 +419,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_analyze(argv[1:])
     if argv and argv[0] == "forecast":
         return run_forecast(argv[1:])
+    if argv and argv[0] == "ablation":
+        return run_ablation(argv[1:])
     print(__doc__)
     return 0
 

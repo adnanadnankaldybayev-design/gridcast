@@ -70,3 +70,46 @@ def dm_test(
         "p_value_two_sided": round(float(_norm_sf(z)), 6),
         "hac_var_mean": float(var),
     }
+
+
+def aggregate_absolute_errors(frame: pd.DataFrame) -> pd.Series:
+    """mean |actual-predicted| per anchor — one observation per issue day."""
+    err = (frame["actual"] - frame["predicted"]).abs()
+    return err.groupby(frame["anchor"]).mean()
+
+
+def dm_test_per_anchor(
+    frame1: pd.DataFrame,
+    frame2: pd.DataFrame,
+    lag: int | None = None,
+) -> dict:
+    """Robust DM: aggregate mean|e| per anchor first, then run the test on the
+    aggregated series (n = number of anchors, typically 22-30 per unit).
+
+    Motivation (PROJECT_REBUILD_PLAN P1.1): per-point loss series overlap
+    massively across 48h horizons; significance inflated by overlapping
+    samples. Per-anchor aggregation is conservative and does not change the
+    winner of a comparison, only the confidence of the claim.
+    """
+    a1 = aggregate_absolute_errors(frame1)
+    a2 = aggregate_absolute_errors(frame2)
+    joined = pd.concat([a1, a2], axis=1, join="inner").dropna()
+    joined.columns = ["l1", "l2"]
+    if len(joined) < 8:
+        raise ValueError(f"dm_test_per_anchor: only {len(joined)} common anchors")
+    d = joined["l1"].to_numpy() - joined["l2"].to_numpy()
+    n = len(d)
+    if lag is None:
+        lag = max(1, int(n ** (1 / 3)))
+    stat = float(d.mean())
+    var = _hac_var(d, lag)
+    z = stat / np.sqrt(var) if var > 0 else 0.0
+    return {
+        "n_anchors": int(n),
+        "lag": int(lag),
+        "loss": "absolute-per-anchor",
+        "mean_loss_diff": round(float(stat), 6),  # >0 => frame2 (b) is better
+        "dm_stat": round(float(z), 4),
+        "p_value_two_sided": round(float(_norm_sf(z)), 6),
+        "hac_var_mean": float(var),
+    }

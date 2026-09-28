@@ -22,7 +22,7 @@ from gridcast.eval.backtest import (
     rolling_origin,
 )
 from gridcast.eval.conformal import conformal_frame, slice_coverage
-from gridcast.eval.dm import dm_test
+from gridcast.eval.dm import dm_test, dm_test_per_anchor
 from gridcast.eval.ensemble_eval import ensemble_frame
 from gridcast.eval.slices import _cold_dates_with_provenance, _slice_dates
 
@@ -84,6 +84,14 @@ def analyze_unit(
     dm_results[f"{ENSEMBLE}__vs__{best_single}"] = dm_test(
         frames[ENSEMBLE], frames[best_single]
     )
+    # per-anchor robustness counterpart (conservative; reframes significance
+    # claims that looked strong only because 48h horizons overlapped)
+    dm_anchor = {}
+    for a, b in DM_PAIRS:
+        dm_anchor[f"{a}__vs__{b}"] = dm_test_per_anchor(frames[a], frames[b])
+    dm_anchor[f"{ENSEMBLE}__vs__{best_single}"] = dm_test_per_anchor(
+        frames[ENSEMBLE], frames[best_single]
+    )
 
     slices = _slice_dates(frames[ENSEMBLE], unit)
     cold, cold_meta = _cold_dates_with_provenance(frames[ENSEMBLE], unit)
@@ -105,6 +113,7 @@ def analyze_unit(
         "best_single_model": best_single,
         "champion_model": champion,
         "dm": dm_results,
+        "dm_per_anchor": dm_anchor,
         "conformal": conformal,
         "cold_slice": cold_meta,
     }

@@ -103,19 +103,36 @@ def render_benchmark(report: dict) -> str:
 
     lines.append("## Diebold-Mariano (two-sided, HAC Newey-West)")
     lines.append("")
-    lines.append("| pair | mean loss diff | DM | p | verdict |")
-    lines.append("|---|---|---|---|---|")
+    lines.append("Two variants reported side by side: per-point (all horizon points, "
+                 "overlapping 48h) and the conservative per-anchor form (mean|e| "
+                 "aggregated one observation per issue day). Claims that survive "
+                 "only the per-point bar are flagged honestly.")
+    lines.append("")
+    lines.append("| pair | pointwise p | per-anchor p | verdict |")
+    lines.append("|---|---|---|---|")
     for key, res in report["results"].items():
+        per_anchor = res.get("dm_per_anchor") or {}
         for pair, dm in res["dm"].items():
-            verdict = "significant" if dm["p_value_two_sided"] < 0.05 else "NOT significant"
+            pa = per_anchor.get(pair)
+            pa_p = pa["p_value_two_sided"] if pa else None
+            pa_stat = (pa_p is not None and pa_p < 0.05)
+            pw_stat = dm["p_value_two_sided"] < 0.05
+            if pw_stat and pa_stat:
+                verdict = "significant (both forms)"
+            elif pw_stat and not pa_stat:
+                verdict = "ONLY per-point — loses significance at anchor level"
+            elif not pw_stat and pa_stat:
+                verdict = "significant only per-anchor"
+            else:
+                verdict = "NOT significant"
             lines.append(
-                f"| {key}: {pair} | {dm['mean_loss_diff']} | {dm['dm_stat']} | "
-                f"{dm['p_value_two_sided']} | {verdict} |"
+                f"| {key}: {pair} | {dm['p_value_two_sided']} | "
+                f"{pa_p if pa_p is not None else '—'} | {verdict} |"
             )
     lines.append("")
     lines.append(
-        "Reading: mean_loss_diff > 0 => the first model named has HIGHER loss (worse). "
-        "Pairs with NOT significant differences are honest non-conclusions, not ties to hide."
+        "Reading: smaller p -> stronger difference. 'ONLY per-point' means the "
+        "48h-overlap inflated the claim; treat those as inconclusive honestly."
     )
     lines.append("")
 
@@ -160,8 +177,9 @@ def render_benchmark(report: dict) -> str:
             "regime shifts (heat waves, price events) temporarily decalibrate it.",
             "- Chronos-Bolt-mini is evaluated natively at market cadence; its long-horizon "
             "weakness at 5/15 min is a known zero-shot limit, not a data bug.",
-            "- DM tests use Newey-West conservative variance; with overlapping 48h forecast "
-            "errors, serial correlation beyond the lag may inflate significance.",
+            "- DM tests shown in two forms: per-point (overlapping-horizon, anti-conservative) "
+            "and per-anchor aggregation (conservative). Claims surviving only the first form are "
+            "explicitly marked 'ONLY per-point' and treated as inconclusive.",
             "- GB's 21-day publication arrears means GBM/foundation share a stale-information "
             "handicap; conclusions do not transfer to markets with real-time metering.",
             "- Weather is archival reanalysis (perfect-forecast proxy); live NWP "

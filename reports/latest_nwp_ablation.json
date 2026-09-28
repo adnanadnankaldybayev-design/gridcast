@@ -1,0 +1,35 @@
+{
+  "experiment": "archive-weather vs ~N(0, sigma=1.75C)-degraded weather (GBM-weather)",
+  "sigma_c": 1.75,
+  "window": {
+    "start": "2026-08-20",
+    "end": "2026-09-20"
+  },
+  "note": "a finite-sample seed realization; DE is the small-window near-zero counterexample",
+  "results": {
+    "GB/GB": {
+      "anchors": 15,
+      "mape_archive": 5.727,
+      "mape_noisy": 6.49,
+      "delta_pp": 0.763
+    },
+    "IE/ALL": {
+      "anchors": 31,
+      "mape_archive": 2.577,
+      "mape_noisy": 3.212,
+      "delta_pp": 0.635
+    },
+    "DE/DE": {
+      "anchors": 31,
+      "mape_archive": 4.948,
+      "mape_noisy": 4.855,
+      "delta_pp": -0.093
+    }
+  },
+  "generated_at": "2026-09-28T16:29:35+00:00",
+  "code": {
+    "gridcast_version": "0.1.0",
+    "git_sha": "1b5a17a",
+    "git_dirty": true
+  }
+}
