@@ -35,7 +35,12 @@ from pathlib import Path
 import pandas as pd
 
 from gridcast.config import RAW_DIR
-from gridcast.ingest.base import IngestError, fetch, make_session
+from gridcast.ingest.base import (
+    IngestError,
+    fetch,
+    make_session,
+    parquet_engine,
+)
 
 log = logging.getLogger(__name__)
 
@@ -111,7 +116,7 @@ def _atomic_write_parquet(df: pd.DataFrame, path: Path) -> None:
 
     tmp = path.with_suffix(".tmp")
     try:
-        df.reset_index().to_parquet(tmp, index=False)
+        df.reset_index().to_parquet(tmp, index=False, engine=parquet_engine())
         os.replace(tmp, path)
     finally:
         tmp.unlink(missing_ok=True)
@@ -142,7 +147,11 @@ def _download_range(session, lat: float, lon: float, start: date, end: date) -> 
     cache_dir = WEATHER_CACHE_DIR
     cache_dir.mkdir(parents=True, exist_ok=True)
     path = _point_parquet(cache_dir, lat, lon)
-    have = pd.read_parquet(path).set_index("timestamp") if path.exists() else None
+    have = (
+        pd.read_parquet(path, engine=parquet_engine()).set_index("timestamp")
+        if path.exists()
+        else None
+    )
     _atomic_write_parquet(_merge(have, df), path)
     return df
 
@@ -154,7 +163,7 @@ def _seed_from_disk(key: tuple[float, float], cache_dir: Path) -> pd.DataFrame |
     have = None
     pq = _point_parquet(cache_dir, lat, lon)
     if pq.exists():
-        have = pd.read_parquet(pq).set_index("timestamp").sort_index()
+        have = pd.read_parquet(pq, engine=parquet_engine()).set_index("timestamp").sort_index()
     frames = []
     for path in cache_dir.glob(f"*_{lat:.4f}_{lon:.4f}_*.json"):
         try:
@@ -185,7 +194,7 @@ def migrate_weather_cache(cache_dir: Path | None = None) -> dict:
         have = None
         pq = _point_parquet(cache_dir, lat, lon)
         if pq.exists():
-            have = pd.read_parquet(pq).set_index("timestamp")
+            have = pd.read_parquet(pq, engine=parquet_engine()).set_index("timestamp")
         for path in paths:
             try:
                 have = _merge(have, parse_response(path.read_text(encoding="utf-8")))
@@ -253,20 +262,46 @@ def unit_weather_forecast(unit: str, hours_ahead: int, session=None) -> pd.DataF
     market point config — the honest future counterpart of the archive."""
     session = session or make_session()
     frames = []
+    failed = []
     for lat, lon, weight in POINTS[unit]:
-        content = fetch(
-            session,
-            FORECAST_URL,
-            params={
-                "latitude": lat,
-                "longitude": lon,
-                "hourly": ",".join(VARIABLES),
-                "timezone": "UTC",
-                "forecast_days": (hours_ahead + 23) // 24 + 1,
-            },
-            timeout=120,
-        )
+        try:
+            content = fetch(
+                session,
+                FORECAST_URL,
+                params={
+                    "latitude": lat,
+                    "longitude": lon,
+                    "hourly": ",".join(VARIABLES),
+                    "timezone": "UTC",
+                    "forecast_days": (hours_ahead + 23) // 24 + 1,
+                },
+                # 60s claim is enough for a healthy API; a hanging point must
+                # surface as degraded fast instead of stalling the whole run
+                timeout=60,
+            )
+        except IngestError as exc:
+            log.warning(
+                "Open-Meteo forecast: point %s,%s failed, tolerated: %s",
+                lat,
+                lon,
+                exc,
+            )
+            failed.append((lat, lon, weight))
+            continue
         frames.append(parse_response(content.decode("utf-8")) * weight)
+    if not frames:
+        raise IngestError(
+            f"Open-Meteo forecast: all {len(POINTS[unit])} points failed for {unit}"
+        )
+    if failed:
+        # weights of the surviving points no longer sum to 1 — acceptable bias,
+        # logged loudly; honest alternative to killing the whole unit
+        log.warning(
+            "Open-Meteo forecast %s: partial outage, weight sum shrank by %s: %s",
+            unit,
+            round(sum(w for _, _, w in failed), 4),
+            failed,
+        )
     out = frames[0]
     for f in frames[1:]:
         out = out.add(f, fill_value=None)

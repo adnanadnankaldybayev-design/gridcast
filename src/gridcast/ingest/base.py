@@ -16,6 +16,24 @@ from urllib3.util.retry import Retry
 
 from gridcast.config import CADENCE_MINUTES, PROCESSED_DIR, RAW_DIR
 
+
+def parquet_engine() -> str | None:
+    """pandas parquet engine override.
+
+    None means pandas default (pyarrow). If pyarrow's native extension fails
+    to load on this machine (broken local runtime), fall back to fastparquet
+    so the pipeline keeps working. GRIDCAST_PARQUET_ENGINE env var overrides.
+    """
+    forced = os.environ.get("GRIDCAST_PARQUET_ENGINE")
+    if forced:
+        return forced
+    try:
+        import pyarrow.compute  # noqa: F401 # actually load the native ext
+
+        return None
+    except Exception:
+        return "fastparquet"
+
 log = logging.getLogger(__name__)
 
 SCHEMA_COLUMNS = ["timestamp", "market", "region", "demand_mw", "forecast_mw", "source"]
@@ -149,13 +167,18 @@ def write_parquet(df: pd.DataFrame, market: str, out_dir: Path | None = None) ->
         path = out_dir / f"demand_{market}_{ym}.parquet"
         if path.exists():
             part = (
-                pd.concat([pd.read_parquet(path), part], ignore_index=True)
+                pd.concat(
+                    [pd.read_parquet(path, engine=parquet_engine()), part],
+                    ignore_index=True,
+                )
                 .drop_duplicates(subset=["timestamp", "region"], keep="last")
                 .sort_values("timestamp")
             )
         tmp = path.with_suffix(".tmp")
         try:
-            part.reset_index(drop=True).to_parquet(tmp, index=False)
+            part.reset_index(drop=True).to_parquet(
+                tmp, index=False, engine=parquet_engine()
+            )
             os.replace(tmp, path)
         finally:
             tmp.unlink(missing_ok=True)
@@ -168,7 +191,10 @@ def read_processed(market: str, out_dir: Path | None = None) -> pd.DataFrame:
     files = sorted(out_dir.glob(f"demand_{market}_*.parquet"))
     if not files:
         return pd.DataFrame(columns=SCHEMA_COLUMNS)
-    return pd.concat((pd.read_parquet(f) for f in files), ignore_index=True)
+    return pd.concat(
+        (pd.read_parquet(f, engine=parquet_engine()) for f in files),
+        ignore_index=True,
+    )
 
 
 def summarize(df: pd.DataFrame, market: str) -> dict:

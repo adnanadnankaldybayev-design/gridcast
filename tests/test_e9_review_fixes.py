@@ -114,3 +114,44 @@ def test_forecast_filter_uses_true_utc_not_local_wallclock(monkeypatch):
     out = weather_mod.unit_weather_forecast("ALL", 48, session=session)
     assert out.index[0] == pd.Timestamp("2026-09-27 10:00", tz="UTC")
     assert str(out.index.tz) == "UTC"
+
+
+class _PartiallyDeadSession:
+    """Fake session: raises ConnectionError for chosen point latitudes."""
+
+    def __init__(self, payload: bytes, dead_lats: set):
+        self._payload = payload
+        self._dead = dead_lats
+
+    def get(self, url, **kwargs):
+        import types
+
+        import requests
+
+        if kwargs["params"]["latitude"] in self._dead:
+            raise requests.ConnectionError("simulated point outage")
+        return types.SimpleNamespace(status_code=200, content=self._payload, url=url)
+
+
+def test_forecast_tolerates_partial_point_outage():
+    """One hanging weather point must NOT kill the whole unit's forecast
+    (Open-Meteo nightly overload tolerated point-by-point, whole run lives)."""
+    session = _PartiallyDeadSession(_forecast_payload(), dead_lats={51.5074})
+    out = weather_mod.unit_weather_forecast("GB", 48, session=session)
+    assert str(out.index.tz) == "UTC"
+    assert len(out) > 0
+    assert all(c.startswith("w_") for c in out.columns)
+
+
+def test_forecast_raises_when_all_points_dead():
+    """Total weather outage still surfaces honestly: the unit degrades instead
+    of silently predicting without weather data."""
+    import pytest
+
+    from gridcast.ingest.base import IngestError
+
+    session = _PartiallyDeadSession(
+        _forecast_payload(), dead_lats={51.5074, 53.4808, 55.8642}
+    )
+    with pytest.raises(IngestError, match="all 3 points failed"):
+        weather_mod.unit_weather_forecast("GB", 48, session=session)

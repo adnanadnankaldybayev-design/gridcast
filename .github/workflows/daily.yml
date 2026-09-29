@@ -2,7 +2,10 @@ name: daily-forecast
 
 on:
   schedule:
-    - cron: "17 2 * * *"  # 02:17 UTC daily
+    # 04:47 UTC daily: the 02:00-03:00 UTC slot is a herd of free cron jobs
+    # hammering the same public APIs — Open-Meteo read-timeouts killed two
+    # night runs there (2026-09-27, 2026-09-29). Off-peak is a reliability fix.
+    - cron: "47 4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -54,8 +57,15 @@ jobs:
           sleep 180
           python -m gridcast.ingest --all 2>&1 | tee -a ingest.log
 
-      - name: Forecast for all champions
+      - name: Forecast for all champions (first try)
         run: python -m gridcast.cli forecast 2>&1 | tee forecast.log
+        continue-on-error: true
+
+      - name: Forecast retry (survives transient API overload)
+        if: failure()
+        run: |
+          sleep 1200
+          python -m gridcast.cli forecast 2>&1 | tee -a forecast.log
 
       - name: Healthcheck — every unit must have updated
         # per-market staleness limits live in publish/healthcheck.py (GB ~21d
