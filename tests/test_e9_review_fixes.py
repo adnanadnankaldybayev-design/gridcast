@@ -155,3 +155,49 @@ def test_forecast_raises_when_all_points_dead():
     )
     with pytest.raises(IngestError, match="all 3 points failed"):
         weather_mod.unit_weather_forecast("GB", 48, session=session)
+
+
+def test_healthcheck_tolerates_source_stall_dk(monkeypatch, tmp_path, capsys):
+    """DK upstream itself hasn't published past our data_through → degrade
+    (warning, exit 0), not a hard fail that blocks the whole daily deploy."""
+    from datetime import timedelta as _td
+
+    through = datetime.now(UTC) - _td(hours=496)
+    latest = {
+        "issue": datetime.now(UTC).isoformat(),
+        "units": {
+            "DK": {
+                "market": "DK",
+                "champion": "naive",
+                "data_through": through.isoformat(),
+            }
+        },
+    }
+    p = tmp_path / "latest.json"
+    import json as _json
+
+    p.write_text(_json.dumps(latest), encoding="utf-8")
+    import gridcast.publish.healthcheck as hc
+
+    monkeypatch.setattr(hc, "source_newest_dk", lambda: through)
+    assert hc.main([str(p)]) == 0
+    assert "source-stalled(tolerated)" in capsys.readouterr().out
+
+
+def test_healthcheck_hard_fails_when_upstream_has_newer(monkeypatch, tmp_path):
+    """We are stale while the operator HAS fresher data → real failure."""
+    from datetime import timedelta as _td
+
+    through = datetime.now(UTC) - _td(hours=496)
+    latest = {
+        "issue": datetime.now(UTC).isoformat(),
+        "units": {"DK": {"market": "DK", "data_through": through.isoformat()}},
+    }
+    p = tmp_path / "latest.json"
+    import json as _json
+
+    p.write_text(_json.dumps(latest), encoding="utf-8")
+    import gridcast.publish.healthcheck as hc
+
+    monkeypatch.setattr(hc, "source_newest_dk", lambda: through + _td(hours=48))
+    assert hc.main([str(p)]) == 1

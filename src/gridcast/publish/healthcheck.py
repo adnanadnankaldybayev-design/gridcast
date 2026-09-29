@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from gridcast.eval.backtest import PUB_LAG_DAYS
@@ -36,16 +36,69 @@ def find_stale(
     return out
 
 
+def source_newest_dk() -> datetime | None:
+    """Freshest timestamp Energinet currently offers for national consumption.
+
+    Their hourly datasets stalled as a whole (checked 2026-09-29: every
+    national consumption series stops at 2026-09-08). A source stall must
+    degrade the unit with a banner, not kill the whole daily deploy — but a
+    stall on OUR side with fresher data upstream is still a hard failure.
+    """
+    import requests
+
+    try:
+        resp = requests.get(
+            "https://api.energidataservice.dk/dataset/"
+            "ConsumptionDK3619IndustryHour",
+            params={"limit": 1, "sort": "TimeUTC DESC"},
+            timeout=45,
+        )
+        resp.raise_for_status()
+        records = resp.json().get("records", [])
+        if not records:
+            return None
+        return datetime.fromisoformat(records[0]["TimeUTC"]).replace(tzinfo=UTC)
+    except Exception:
+        return None  # unknown → keep the strict path
+
+
 def main(argv: list[str] | None = None) -> int:
     path = Path((sys.argv[1:] if argv is None else argv)[0])
     latest = json.loads(path.read_text(encoding="utf-8"))
     now = datetime.now(UTC)
     degraded = latest.get("degraded") or []
     stale = find_stale(latest, now)
-    if degraded or stale:
-        print("HEALTHCHECK FAIL:", "degraded:", degraded, "stale:", stale)
+    hard_stale = []
+    source_stalled = []
+    for unit, age_h, limit_h in stale:
+        snap = latest["units"][unit]
+        if snap.get("market") == "DK":
+            upstream = source_newest_dk()
+            through = datetime.fromisoformat(
+                str(snap["data_through"]).replace("Z", "+00:00")
+            )
+            # source itself hasn't published past what we already have →
+            # nothing to fetch: degrade honestly instead of hard-failing
+            if upstream is not None and upstream <= through + timedelta(hours=1):
+                source_stalled.append((unit, age_h, limit_h, upstream.isoformat()))
+                continue
+        hard_stale.append((unit, age_h, limit_h))
+    if degraded or hard_stale:
+        print(
+            "HEALTHCHECK FAIL:",
+            "degraded:",
+            degraded,
+            "stale:",
+            hard_stale,
+            "source-stalled(tolerated):",
+            source_stalled,
+        )
         return 1
-    print(f"HEALTHCHECK OK: {len(latest.get('units', {}))} units, issue {latest.get('issue')}")
+    note = f" source-stalled(tolerated): {source_stalled}" if source_stalled else ""
+    print(
+        f"HEALTHCHECK OK: {len(latest.get('units', {}))} units,"
+        f" issue {latest.get('issue')}.{note}"
+    )
     return 0
 
 
