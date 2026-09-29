@@ -17,12 +17,13 @@ from urllib3.util.retry import Retry
 from gridcast.config import CADENCE_MINUTES, PROCESSED_DIR, RAW_DIR
 
 
-def parquet_engine() -> str | None:
-    """pandas parquet engine override.
+def parquet_engine() -> str:
+    """pandas parquet engine name.
 
-    None means pandas default (pyarrow). If pyarrow's native extension fails
-    to load on this machine (broken local runtime), fall back to fastparquet
-    so the pipeline keeps working. GRIDCAST_PARQUET_ENGINE env var overrides.
+    Explicit "pyarrow" when its native extension loads (pandas 3.0 rejects
+    engine=None in parquet calls — the default must be spelled out). Falls
+    back to fastparquet when pyarrow's native ext is broken on the machine
+    (e.g. outdated local VC++ runtime). GRIDCAST_PARQUET_ENGINE env wins.
     """
     forced = os.environ.get("GRIDCAST_PARQUET_ENGINE")
     if forced:
@@ -30,7 +31,7 @@ def parquet_engine() -> str | None:
     try:
         import pyarrow.compute  # noqa: F401 # actually load the native ext
 
-        return None
+        return "pyarrow"
     except Exception:
         return "fastparquet"
 

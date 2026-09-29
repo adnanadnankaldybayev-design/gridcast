@@ -43,3 +43,18 @@ def test_fetch_wraps_network_errors_in_ingest_error():
 
     with pytest.raises(IngestError, match=r"GET https://example\.test/x failed"):
         fetch(BrokenSession(), "https://example.test/x")
+
+
+def test_parquet_engine_name_is_valid_and_roundtrips(tmp_path):
+    """pandas 3.0 rejects engine=None — the helper must return a spelled-out
+    engine that an actual write/read roundtrip accepts."""
+    import pandas as pd
+
+    from gridcast.ingest.base import parquet_engine
+
+    eng = parquet_engine()
+    assert eng in ("pyarrow", "fastparquet")
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    p = tmp_path / "t.parquet"
+    df.to_parquet(p, engine=eng, index=False)
+    assert len(pd.read_parquet(p, engine=eng)) == 3
