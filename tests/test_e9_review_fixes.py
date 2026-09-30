@@ -84,8 +84,11 @@ class _FakeSession:
         return types.SimpleNamespace(status_code=200, content=self._payload, url=url)
 
 
-def _forecast_payload():
-    hours = pd.date_range("2026-09-27", periods=72, freq="h")  # naive strings
+def _forecast_payload(start: pd.Timestamp | None = None):
+    # relative-to-now by default: tests filtering against real UTC now must not
+    # rot on the next date rollover (caught: frozen payload aged out overnight)
+    start = start or (pd.Timestamp.now(tz="UTC").floor("h") - pd.Timedelta(hours=1))
+    hours = pd.date_range(start, periods=72, freq="h")  # naive strings
     return json.dumps(
         {
             "hourly": {
@@ -110,7 +113,7 @@ def test_forecast_filter_uses_true_utc_not_local_wallclock(monkeypatch):
             return datetime(2026, 9, 27, 10, 34, tzinfo=UTC)  # true UTC
 
     monkeypatch.setattr(weather_mod, "datetime", FakeDatetime)
-    session = _FakeSession(_forecast_payload())
+    session = _FakeSession(_forecast_payload(pd.Timestamp("2026-09-27")))
     out = weather_mod.unit_weather_forecast("ALL", 48, session=session)
     assert out.index[0] == pd.Timestamp("2026-09-27 10:00", tz="UTC")
     assert str(out.index.tz) == "UTC"
