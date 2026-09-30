@@ -1,0 +1,12 @@
+fastparquet==2026.9.0
+holidays==0.105
+lightgbm==4.7.0
+numpy==2.5.3
+pandas==3.0.6
+playwright==1.63.0
+pytest==9.1.1
+requests==2.34.2
+ruff==0.16.9
+scikit-learn==1.9.1
+scipy==1.18.1
+tzdata==2026.4

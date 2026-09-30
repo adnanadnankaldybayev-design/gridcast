@@ -45,7 +45,10 @@ jobs:
       # naive/ensemble only (documented in publish/forecast.py). Zero-shot
       # inference stays in the heavier weekly analysis jobs instead.
       - name: Install package
-        run: pip install -e .
+        # see ci.yml: lock first, then the package itself
+        run: |
+          pip install -r requirements-lock.txt
+          pip install -e . --no-deps
 
       - name: Ingest all markets (first try)
         run: python -m gridcast.ingest --all 2>&1 | tee ingest.log

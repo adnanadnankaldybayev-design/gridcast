@@ -14,7 +14,11 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install
-        run: pip install -e ".[dev]"
+        # dependency lock first: bleeding-edge pairs (scipy/sklearn) broke the
+        # env once already; the lock pins the known-good combination
+        run: |
+          pip install -r requirements-lock.txt
+          pip install -e . --no-deps
       - name: Ruff
         run: ruff check .
       - name: Pytest
