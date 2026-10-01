@@ -1,25 +1,25 @@
 {
- "generated_at": "2026-09-30T09:18:31+00:00",
+ "generated_at": "2026-10-01T05:12:22+00:00",
  "mode": "statistical",
  "items": [
   {
    "headline": "Champions beat naive by 1.62 pts on average over 14 units.",
-   "body": "No forecast-past-day overlap yet (publication lags slow the fact view). Oldest-tied units watching closely: DK, KZ, KZ_W. Running 4 consecutive daily issues.",
+   "body": "No forecast-past-day overlap yet (publication lags slow the fact view). Oldest-tied units watching closely: DK, KZ, KZ_W. Running 5 consecutive daily issues.",
    "rating": "strong day",
    "basis": {
     "units": 14,
     "wins": 11,
     "mean_delta_pp": 1.624,
     "biggest_miss": null,
-    "streak_days": 4
+    "streak_days": 5
    }
   },
   {
-   "headline": "Datum of the day · DK",
-   "body": "Industry-settlement consumption publishes ~18 days late - this lag is the operator's design.",
+   "headline": "Datum of the day · FR",
+   "body": "Definitive archive carried 30-minute demand until Jun 2026; rolling feed is 15-minute. Mixed cadence is the operator's design.",
    "rating": "context",
    "basis": {
-    "unit": "DK"
+    "unit": "FR"
    }
   }
  ],
@@ -111,9 +111,9 @@
    }
   ],
   "yesterday_misses": [],
-  "days_n": 4,
-  "fact_unit": "DK",
-  "fact_text": "Industry-settlement consumption publishes ~18 days late - this lag is the operator's design."
+  "days_n": 5,
+  "fact_unit": "FR",
+  "fact_text": "Definitive archive carried 30-minute demand until Jun 2026; rolling feed is 15-minute. Mixed cadence is the operator's design."
  },
  "llm_note": "no LLM_API_KEY set - statistical mode"
 }
